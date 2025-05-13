@@ -15,7 +15,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "npx --no-install --prefix secure-dash-client next lint --fix --file"
+      "npm --prefix secure-dash-client run lint:fix"
     ],
     "*.{md,css,json}": [
       "npx --no-install --prefix secure-dash-client prettier --write"
