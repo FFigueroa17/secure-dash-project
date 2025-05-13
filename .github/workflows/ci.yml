@@ -35,6 +35,8 @@ jobs:
 
       - name: Install deps
         run: npm ci --prefer-offline
+        env:
+          HUSKY: 0 # ⇠ disables husky install + all hooks in CI
 
       # 3️⃣  Restore Next.js build cache (inside sub-folder)
       - name: Restore .next/cache
@@ -53,6 +55,8 @@ jobs:
         name: Type-check
       - run: npm run test --if-present
         name: Unit tests
+      - run: npx prettier --check "**/*.{js,jsx,ts,tsx,md,css,json}"
+        name: Prettier check
 
       # 5️⃣  Build
       - run: npm run build
