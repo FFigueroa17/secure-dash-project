@@ -4,12 +4,10 @@ on:
   push:
     branches: [main, develop, feat/**]
   pull_request:
-    types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
 
-# Kill superseded runs on the same branch
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -18,43 +16,51 @@ jobs:
   build-test:
     runs-on: ubuntu-latest
 
+    # 👇  all `run:` commands will execute inside the sub-folder
+    defaults:
+      run:
+        working-directory: secure-dash-client
+
     steps:
-      # 1️⃣  Check-out source
+      # 1️⃣  Checkout
       - uses: actions/checkout@v4
 
-      # 2️⃣  Node + npm cache
+      # 2️⃣  Node setup + npm cache
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm # built-in lock-file–keyed cache
+          cache: npm
+          # tell the action where the lock-file actually is
+          cache-dependency-path: secure-dash-client/package-lock.json
 
-      - name: Install dependencies
+      - name: Install deps
         run: npm ci --prefer-offline
 
-      - name: Restore `.next/cache`
+      # 3️⃣  Restore Next.js build cache (inside sub-folder)
+      - name: Restore .next/cache
         uses: actions/cache@v4
         with:
-          path: .next/cache
-          key: ${{ runner.os }}-next-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('.github/**/*.yml', '**/*.[jt]sx?') }}
+          path: secure-dash-client/.next/cache
+          key: |
+            ${{ runner.os }}-next-${{ hashFiles('secure-dash-client/package-lock.json') }}-${{ hashFiles('secure-dash-client/**/*.[jt]sx?') }}
           restore-keys: |
-            ${{ runner.os }}-next-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-next-${{ hashFiles('secure-dash-client/package-lock.json') }}-
 
-      - name: Lint
-        run: npm run lint # wraps `next lint` with your flat config
+      # 4️⃣  Quality gates
+      - run: npm run lint # next lint
+        name: Lint
+      - run: npm run typecheck
+        name: Type-check
+      - run: npm run test --if-present
+        name: Unit tests
 
-      - name: Type-check
-        run: npm run typecheck
+      # 5️⃣  Build
+      - run: npm run build
+        name: Build
 
-      - name: Unit tests (Vitest/Jest)
-        run: npm run test --if-present
-
-      # 5️⃣  Build (guarantees prod bundle compiles)
-      - name: Build
-        run: npm run build
-
-      # 6️⃣  (optional) upload build artefacts for troubleshooting
+      # 6️⃣  Upload artefact for debugging (optional)
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: next-build
-          path: .next
+          path: secure-dash-client/.next
