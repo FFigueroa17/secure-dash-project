@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, feat/**]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+# Kill superseded runs on the same branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣  Check-out source
+      - uses: actions/checkout@v4
+
+      # 2️⃣  Node + npm cache
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm # built-in lock-file–keyed cache
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Restore `.next/cache`
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-next-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('.github/**/*.yml', '**/*.[jt]sx?') }}
+          restore-keys: |
+            ${{ runner.os }}-next-${{ hashFiles('**/package-lock.json') }}-
+
+      - name: Lint
+        run: npm run lint # wraps `next lint` with your flat config
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Unit tests (Vitest/Jest)
+        run: npm run test --if-present
+
+      # 5️⃣  Build (guarantees prod bundle compiles)
+      - name: Build
+        run: npm run build
+
+      # 6️⃣  (optional) upload build artefacts for troubleshooting
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: next-build
+          path: .next
