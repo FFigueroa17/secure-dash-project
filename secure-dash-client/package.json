@@ -9,7 +9,7 @@
     "lint": "next lint",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepare": "husky install",
+    "prepare": "husky",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,css,md,json}\"",
     "lint-staged": "lint-staged"
   },
