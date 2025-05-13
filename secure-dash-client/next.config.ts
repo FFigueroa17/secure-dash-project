@@ -3,8 +3,6 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true, // Recommended for React 19
   experimental: {
-    // Enable Partial Prerendering if needed
-    ppr: true,
     // Enable React Compiler for better performance
     reactCompiler: true,
   },
