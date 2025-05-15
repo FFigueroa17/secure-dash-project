@@ -1,0 +1,2 @@
+npx --no-install --prefix secure-dash-client \
+  commitlint --config secure-dash-client/commitlint.config.cjs --edit "$1"

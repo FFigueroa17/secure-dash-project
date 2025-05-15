@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, feat/**]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    # 👇  all `run:` commands will execute inside the sub-folder
+    defaults:
+      run:
+        working-directory: secure-dash-client
+
+    steps:
+      # 1️⃣  Checkout
+      - uses: actions/checkout@v4
+
+      # 2️⃣  Node setup + npm cache
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          # tell the action where the lock-file actually is
+          cache-dependency-path: secure-dash-client/package-lock.json
+
+      - name: Install deps
+        run: npm ci --prefer-offline --legacy-peer-deps
+        env:
+          HUSKY: 0 # ⇠ disables husky install + all hooks in CI
+
+      # 3️⃣  Restore Next.js build cache (inside sub-folder)
+      - name: Restore .next/cache
+        uses: actions/cache@v4
+        with:
+          path: secure-dash-client/.next/cache
+          key: |
+            ${{ runner.os }}-next-${{ hashFiles('secure-dash-client/package-lock.json') }}-${{ hashFiles('secure-dash-client/**/*.[jt]sx?') }}
+          restore-keys: |
+            ${{ runner.os }}-next-${{ hashFiles('secure-dash-client/package-lock.json') }}-
+
+      # 4️⃣  Quality gates
+      - run: npm run lint # next lint
+        name: Lint
+      - run: npm run typecheck
+        name: Type-check
+      - run: npm run test --if-present
+        name: Unit tests
+      - run: npx prettier --check "**/*.{js,jsx,ts,tsx,md,css,json}"
+        name: Prettier check
+
+      # 5️⃣  Build
+      - run: npm run build
+        name: Build
+
+      # 6️⃣  Upload artefact for debugging (optional)
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: next-build
+          path: secure-dash-client/.next
