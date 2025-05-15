@@ -1,16 +1,16 @@
 import './globals.css';
 
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter } from 'next/font/google';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
+import { AppSidebar } from '@/components/app-sidebar';
+import Header from '@/components/header';
+import { Providers } from '@/components/providers';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const fontSans = Inter({
   subsets: ['latin'],
+  variable: '--font-sans',
 });
 
 export const metadata: Metadata = {
@@ -24,8 +24,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+    <html lang="en" className="dark scheme-only-dark">
+      <body className={`${fontSans.variable} font-sans antialiased`}>
+        <Providers>
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset className="overflow-hidden px-4 md:px-6 lg:px-8">
+              <Header />
+              {children}
+            </SidebarInset>
+          </SidebarProvider>
+        </Providers>
+      </body>
     </html>
   );
 }

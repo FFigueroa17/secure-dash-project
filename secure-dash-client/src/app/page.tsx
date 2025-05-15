@@ -1,83 +1,111 @@
-import Image from 'next/image';
+import type { Metadata } from 'next';
 
-export default function Home() {
+export const metadata: Metadata = {
+  title: 'Experiment 01 - Crafted.is',
+};
+
+import { Ban, Circle, Shield, XCircle } from 'lucide-react';
+import React from 'react';
+
+import LogsTable from '@/app/_components/logs-table';
+import { getFail2BanLogs } from '@/app/_lib/queries';
+import { searchParamsCache } from '@/app/_lib/validations';
+import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton';
+import { StatsGrid } from '@/components/stats-grid';
+import { getValidFilters } from '@/lib/data-table';
+import { SearchParams } from '@/types';
+interface IndexPageProps {
+  searchParams: Promise<SearchParams>;
+}
+
+export default async function Page(props: IndexPageProps) {
+  const searchParams = await props.searchParams;
+  const search = searchParamsCache.parse(searchParams);
+
+  const validFilters = getValidFilters(search.filters);
+
+  const fail2BanLogs = getFail2BanLogs({
+    ...search,
+    filters: validFilters,
+  });
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{' '}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="flex flex-1 flex-col gap-4 lg:gap-6 py-4 lg:py-6">
+      {/* Page intro */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold">Fail2Ban Logs Overview</h1>
+          <p className="text-sm text-muted-foreground">
+            Review the latest logs and statistics from Fail2Ban. Monitor and
+            manage bans effectively.
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        {/* <Button className="px-3">Add Contact</Button> */}
+      </div>
+      {/* Numbers */}
+      <StatsGrid
+        stats={[
+          {
+            title: 'Total Failures',
+            value: '427,296',
+            change: {
+              value: '+12%',
+              trend: 'up',
+            },
+            icon: <XCircle size={20} aria-hidden="true" />,
+          },
+          {
+            title: 'Total Bans',
+            value: '37,429',
+            change: {
+              value: '+42%',
+              trend: 'up',
+            },
+            icon: <Ban size={20} aria-hidden="true" />,
+          },
+          {
+            title: 'Total IPs',
+            value: '1,234',
+            change: {
+              value: '+37%',
+              trend: 'up',
+            },
+            icon: <Circle size={20} aria-hidden="true" />,
+          },
+          {
+            title: 'Total Jails',
+            value: '1,497',
+            change: {
+              value: '-17%',
+              trend: 'down',
+            },
+            icon: <Shield size={20} aria-hidden="true" />,
+          },
+        ]}
+      />
+      {/* Table */}
+      <div className="min-h-[100vh] flex-1 md:min-h-min">
+        <React.Suspense
+          fallback={
+            <DataTableSkeleton
+              columnCount={7}
+              filterCount={2}
+              cellWidths={[
+                '10rem',
+                '30rem',
+                '10rem',
+                '10rem',
+                '6rem',
+                '6rem',
+                '6rem',
+              ]}
+              shrinkZero
+            />
+          }
         >
-          <Image aria-hidden src="/file.svg" alt="File icon" width={16} height={16} />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image aria-hidden src="/window.svg" alt="Window icon" width={16} height={16} />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image aria-hidden src="/globe.svg" alt="Globe icon" width={16} height={16} />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <LogsTable promises={fail2BanLogs} />
+        </React.Suspense>
+      </div>
     </div>
   );
 }

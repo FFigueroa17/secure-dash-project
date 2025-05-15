@@ -6,6 +6,14 @@ const nextConfig: NextConfig = {
     // Enable React Compiler for better performance
     reactCompiler: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+    ],
+  },
   // Improved security headers
   headers: async () => [
     {
