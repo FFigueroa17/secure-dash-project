@@ -34,7 +34,7 @@ jobs:
           cache-dependency-path: secure-dash-client/package-lock.json
 
       - name: Install deps
-        run: npm ci --prefer-offline
+        run: npm ci --prefer-offline --legacy-peer-deps
         env:
           HUSKY: 0 # ⇠ disables husky install + all hooks in CI
 
