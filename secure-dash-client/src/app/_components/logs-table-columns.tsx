@@ -7,6 +7,7 @@ import * as React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { CopyButton } from '@/components/ui/copy-button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,12 +21,12 @@ import {
 } from '@/components/ui/tooltip';
 import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { ParsedFail2BanLog } from '@/schemas/log';
+import { Fail2BanLog } from '@/schemas/log';
 import type { DataTableRowAction } from '@/types/data-table';
 
 interface GetLogsTableColumnsProps {
   setRowAction: React.Dispatch<
-    React.SetStateAction<DataTableRowAction<ParsedFail2BanLog> | null>
+    React.SetStateAction<DataTableRowAction<Fail2BanLog> | null>
   >;
 }
 
@@ -33,7 +34,7 @@ export function getLogsTableColumns(
   {
     // setRowAction,
   }: GetLogsTableColumnsProps,
-): ColumnDef<ParsedFail2BanLog>[] {
+): ColumnDef<Fail2BanLog>[] {
   return [
     {
       id: 'select',
@@ -120,30 +121,27 @@ export function getLogsTableColumns(
       },
     },
     {
-      header: 'Total Failures',
-      accessorKey: 'totalFailures',
-      cell: ({ row }) => {
-        const totalFailures = row.getValue('totalFailures') as number | null;
-        return (
-          <Badge variant="secondary" className="font-mono">
-            {totalFailures}
-          </Badge>
-        );
-      },
-    },
-    {
       header: 'IP Details',
       accessorKey: 'ip',
       cell: ({ row }) => {
         const ip = row.getValue('ip') as string | null;
+
+        if (!ip)
+          return (
+            <Badge variant="outline" className="font-mono text-xs opacity-75">
+              {'No IP details'}
+            </Badge>
+          );
+
         return (
-          <div className="flex flex-col gap-1">
+          <div className="flex gap-2 items-center flex-row justify-start">
             <Badge
               variant="outline"
               className="font-mono text-xs whitespace-nowrap"
             >
               {ip}
             </Badge>
+            <CopyButton value={ip} tooltipMessage={`Copy IP: ${ip}`} />
           </div>
         );
       },
@@ -190,19 +188,20 @@ export function getLogsTableColumns(
     },
     {
       header: 'Message',
-      accessorKey: 'rawMessage',
+      accessorKey: 'message',
       cell: ({ row }) => (
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="text-muted-foreground line-clamp-1">
-              {row.getValue('rawMessage')}
+              {row.getValue('message')}
             </span>
           </TooltipTrigger>
           <TooltipContent className="max-w-[300px]">
-            {row.getValue('rawMessage')}
+            {row.getValue('message')}
           </TooltipContent>
         </Tooltip>
       ),
+      size: 200,
     },
     {
       id: 'actions',

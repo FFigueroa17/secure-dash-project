@@ -21,21 +21,31 @@ const LogsTable = ({ promises }: LogsTableProps) => {
   );
 
   const { table } = useDataTable({
-    data: data.data,
+    data: data.values,
     columns,
-    pageCount: data.pageCount,
+    pageCount: data.totalPages,
     initialState: {
       sorting: [{ id: 'timestamp', desc: true }],
       columnPinning: { right: ['actions'] },
     },
-    getRowId: (originalRow) => originalRow.rawMessage,
+    getRowId: (originalRow) => originalRow.message,
     shallow: false,
     clearOnDefault: true,
   });
 
   return (
     <DataTable table={table} columns={columns} actionBar={<></>}>
-      <DataTableToolbar table={table} filters={[]} />
+      <DataTableToolbar
+        table={table}
+        filters={[
+          {
+            column: table.getColumn('message')!, // Table.getColumn() returns  the actual Column object
+            label: 'Mensaje',
+            filterType: 'text',
+            placeholder: 'Buscar por mensaje',
+          },
+        ]}
+      />
     </DataTable>
   );
 };

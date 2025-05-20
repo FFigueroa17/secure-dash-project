@@ -12,7 +12,6 @@ import { getFail2BanLogs } from '@/app/_lib/queries';
 import { searchParamsCache } from '@/app/_lib/validations';
 import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton';
 import { StatsGrid } from '@/components/stats-grid';
-import { getValidFilters } from '@/lib/data-table';
 import { SearchParams } from '@/types';
 interface IndexPageProps {
   searchParams: Promise<SearchParams>;
@@ -22,11 +21,9 @@ export default async function Page(props: IndexPageProps) {
   const searchParams = await props.searchParams;
   const search = searchParamsCache.parse(searchParams);
 
-  const validFilters = getValidFilters(search.filters);
-
   const fail2BanLogs = getFail2BanLogs({
     ...search,
-    filters: validFilters,
+    filters: search.filters,
   });
 
   return (

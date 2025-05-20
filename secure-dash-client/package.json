@@ -10,12 +10,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepare": "husky",
     "lint:fix": "next lint --fix --file",
-    "format": "prettier --write",
+    "format": "npx prettier --write '**/*.{js,jsx,ts,tsx,md,css,json}'",
     "lint-staged": "lint-staged"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "npm --prefix secure-dash-client run lint:fix"
+      "npm --prefix secure-dash-client run format"
     ],
     "*.{md,css,json}": [
       "npx --no-install --prefix secure-dash-client prettier --write"
