@@ -24,10 +24,6 @@ const LogsTable = ({ promises }: LogsTableProps) => {
     data: data.values,
     columns,
     pageCount: data.totalPages,
-    initialState: {
-      sorting: [{ id: 'timestamp', desc: true }],
-      columnPinning: { right: ['actions'] },
-    },
     getRowId: (originalRow) => originalRow.message,
     shallow: false,
     clearOnDefault: true,

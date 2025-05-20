@@ -1,7 +1,7 @@
 'use client';
 
 import type { Table } from '@tanstack/react-table';
-import { X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import * as React from 'react';
 
 import { DataTableDateFilter } from '@/components/data-table/data-table-date-filter';
@@ -72,15 +72,33 @@ function DataTableToolbarFilter<TData>({
     switch (filter.filterType) {
       case 'text':
         return (
-          <Input
-            placeholder={filter.placeholder ?? filter.label}
-            value={(filter.column.getFilterValue() as string) ?? ''}
-            onChange={(event) =>
-              filter.column.setFilterValue(event.target.value)
-            }
-            className="h-8 w-40 lg:w-56"
-          />
+          <div className="relative">
+            <Input
+              id={`${filter.column.id}-input`}
+              className={cn(
+                'peer min-w-60 ps-9 bg-background bg-gradient-to-br from-accent/60 to-accent',
+              )}
+              value={(filter.column.getFilterValue() ?? '') as string}
+              onChange={(e) => filter.column.setFilterValue(e.target.value)}
+              placeholder={filter.placeholder ?? filter.label}
+              type="text"
+              aria-label={filter.label}
+            />
+            <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-2 text-muted-foreground/60 peer-disabled:opacity-50">
+              <Search size={20} aria-hidden="true" />
+            </div>
+          </div>
         );
+      // return (
+      //   <Input
+      //     placeholder={filter.placeholder ?? filter.label}
+      //     value={(filter.column.getFilterValue() as string) ?? ''}
+      //     onChange={(event) =>
+      //       filter.column.setFilterValue(event.target.value)
+      //     }
+      //     className="h-8 w-40 lg:w-56"
+      //   />
+      // );
 
       case 'number':
         return (

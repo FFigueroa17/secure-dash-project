@@ -1,19 +1,18 @@
 import { ArrowUpRight } from 'lucide-react';
 
+import { getFail2BanLogsOverview } from '@/app/_lib/queries';
+import { formatTitle, getIcon } from '@/app/_lib/utils';
 import { cn } from '@/lib/utils';
+import { StatValue } from '@/schemas/log';
 
 interface StatsCardProps {
   title: string;
-  value: string;
-  change: {
-    value: string;
-    trend: 'up' | 'down';
-  };
+  value: StatValue;
   icon: React.ReactNode;
 }
 
-export function StatsCard({ title, value, change, icon }: StatsCardProps) {
-  const isPositive = change.trend === 'up';
+export function StatsCard({ title, value, icon }: StatsCardProps) {
+  const isPositive = value.deltaPct !== null && value.deltaPct > 0;
   const trendColor = isPositive ? 'text-emerald-500' : 'text-red-500';
 
   return (
@@ -36,10 +35,10 @@ export function StatsCard({ title, value, change, icon }: StatsCardProps) {
           >
             {title}
           </a>
-          <div className="text-2xl font-semibold mb-2">{value}</div>
+          <div className="text-2xl font-semibold mb-2">{value.value}</div>
           <div className="text-xs text-muted-foreground/60">
             <span className={cn('font-medium', trendColor)}>
-              {isPositive ? '↗' : '↘'} {change.value}
+              {isPositive ? '↗' : '↘'} {value.deltaPct ?? 0}%
             </span>{' '}
             vs last week
           </div>
@@ -49,15 +48,18 @@ export function StatsCard({ title, value, change, icon }: StatsCardProps) {
   );
 }
 
-interface StatsGridProps {
-  stats: StatsCardProps[];
-}
+export async function StatsGrid() {
+  const stats = await getFail2BanLogsOverview();
 
-export function StatsGrid({ stats }: StatsGridProps) {
   return (
     <div className="grid grid-cols-2 min-[1200px]:grid-cols-4 border border-border rounded-xl bg-gradient-to-br from-sidebar/60 to-sidebar">
-      {stats.map((stat) => (
-        <StatsCard key={stat.title} {...stat} />
+      {Object.entries(stats.overview).map(([key, value]) => (
+        <StatsCard
+          key={key}
+          title={formatTitle(key)}
+          value={value}
+          icon={getIcon(key)}
+        />
       ))}
     </div>
   );

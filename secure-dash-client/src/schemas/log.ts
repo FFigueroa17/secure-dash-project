@@ -11,12 +11,7 @@ export interface Fail2BanLog {
   /** The severity level of the log entry, e.g., DEBUG, INFO, NOTICE. */
   level: string;
   /** The type of event described by the log entry. */
-  eventType:
-    | 'failure_detected'
-    | 'failure_aggregate'
-    | 'Found'
-    | 'Unban'
-    | 'Unknown';
+  eventType: 'Ban' | 'Found' | 'Unban' | 'Unknown';
   /** The IP address involved in the log entry, if available. */
   ip: string | null;
   /** The raw message content of the log entry. */
@@ -39,4 +34,24 @@ export interface APIResponse<TData> {
   hasPreviousPage: boolean;
   /** The list of parsed Fail2Ban log entries for the current page. */
   values: TData[];
+}
+
+/**
+ * Represents a statistical value with its delta percentage change
+ */
+export interface StatValue {
+  value: number;
+  deltaPct: number | null;
+}
+
+/**
+ * Represents the overview statistics from Fail2Ban
+ */
+export interface Fail2BanOverview {
+  overview: {
+    totalFailures: StatValue;
+    totalBans: StatValue;
+    uniqueIPs: StatValue;
+    activeBans: StatValue;
+  };
 }

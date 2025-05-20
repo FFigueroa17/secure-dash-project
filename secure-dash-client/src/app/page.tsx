@@ -4,7 +4,6 @@ export const metadata: Metadata = {
   title: 'Experiment 01 - Crafted.is',
 };
 
-import { Ban, Circle, Shield, XCircle } from 'lucide-react';
 import React from 'react';
 
 import LogsTable from '@/app/_components/logs-table';
@@ -23,7 +22,6 @@ export default async function Page(props: IndexPageProps) {
 
   const fail2BanLogs = getFail2BanLogs({
     ...search,
-    filters: search.filters,
   });
 
   return (
@@ -40,46 +38,7 @@ export default async function Page(props: IndexPageProps) {
         {/* <Button className="px-3">Add Contact</Button> */}
       </div>
       {/* Numbers */}
-      <StatsGrid
-        stats={[
-          {
-            title: 'Total Failures',
-            value: '427,296',
-            change: {
-              value: '+12%',
-              trend: 'up',
-            },
-            icon: <XCircle size={20} aria-hidden="true" />,
-          },
-          {
-            title: 'Total Bans',
-            value: '37,429',
-            change: {
-              value: '+42%',
-              trend: 'up',
-            },
-            icon: <Ban size={20} aria-hidden="true" />,
-          },
-          {
-            title: 'Total IPs',
-            value: '1,234',
-            change: {
-              value: '+37%',
-              trend: 'up',
-            },
-            icon: <Circle size={20} aria-hidden="true" />,
-          },
-          {
-            title: 'Total Jails',
-            value: '1,497',
-            change: {
-              value: '-17%',
-              trend: 'down',
-            },
-            icon: <Shield size={20} aria-hidden="true" />,
-          },
-        ]}
-      />
+      <StatsGrid />
       {/* Table */}
       <div className="min-h-[100vh] flex-1 md:min-h-min">
         <React.Suspense

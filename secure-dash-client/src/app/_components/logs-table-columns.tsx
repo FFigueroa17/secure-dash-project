@@ -155,28 +155,21 @@ export function getLogsTableColumns(
             variant="outline"
             className={cn(
               'gap-1 py-0.5 px-2 text-sm',
-              row.original.level === 'info'
+              row.original.level === 'INFO'
                 ? 'text-muted-foreground'
                 : 'text-primary-foreground',
             )}
           >
-            {row.original.level === 'info' && (
+            {row.original.level === 'INFO' && (
               <Check
                 className="text-emerald-500"
                 size={14}
                 aria-hidden="true"
               />
             )}
-            {row.original.level === 'warn' && (
+            {row.original.level === 'DEBUG' && (
               <CircleAlert
                 className="text-yellow-500"
-                size={14}
-                aria-hidden="true"
-              />
-            )}
-            {row.original.level === 'error' && (
-              <CircleAlert
-                className="text-red-500"
                 size={14}
                 aria-hidden="true"
               />
