@@ -44,6 +44,7 @@
   --color-card: var(--card);
   --shadow-green-xl: var(--shadow-green-xl);
   --shadow-red-xl: var(--shadow-red-xl);
+  --color-dark-green: var(--dark-green);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -126,6 +127,7 @@
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.244 0.006 285.97); /* Custom */
+  --dark-green: oklch(0.3311 0.058 166.56);
   --sidebar-foreground: oklch(0.967 0.001 286.375);
   --sidebar-primary: oklch(0.596 0.145 163.225);
   --sidebar-primary-foreground: oklch(1 0 0);
@@ -160,4 +162,89 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce-once {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes bounce-down-once {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+.animate-bounce-once {
+  animation: bounce-once 1s ease-in-out;
+}
+
+.animate-bounce-down-once {
+  animation: bounce-down-once 1s ease-in-out;
+}
+
+.animate-in {
+  animation-duration: var(--animation-duration, 150ms);
+  animation-timing-function: var(
+    --animation-easing,
+    cubic-bezier(0.16, 1, 0.3, 1)
+  );
+  animation-fill-mode: forwards;
+}
+
+.fade-in-0 {
+  opacity: 0;
+  animation-name: fade-in;
+}
+
+.fade-in-50 {
+  opacity: 0.5;
+  animation-name: fade-in;
+}
+
+@keyframes fade-in {
+  to {
+    opacity: 1;
+  }
+}
+
+.slide-in-from-right-4 {
+  transform: translateX(1rem);
+  animation-name: slide-in-from-right;
+}
+
+@keyframes slide-in-from-right {
+  to {
+    transform: translateX(0);
+  }
+}
+
+.duration-300 {
+  animation-duration: 300ms;
+}
+.duration-500 {
+  animation-duration: 500ms;
+}
+.duration-700 {
+  animation-duration: 700ms;
 }

@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ChartLine,
   Cog,
@@ -6,6 +8,7 @@ import {
   LogOut,
   Users,
 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import * as React from 'react';
 
 import { SearchForm } from '@/components/search-form';
@@ -34,11 +37,10 @@ const data = {
   navMain: [
     {
       title: 'Sections',
-      url: '#',
       items: [
         {
           title: 'Dashboard',
-          url: '#',
+          url: '/realtime-logs',
           icon: LayoutDashboard,
         },
         {
@@ -48,9 +50,8 @@ const data = {
         },
         {
           title: 'Fail2Ban Logs',
-          url: '#',
+          url: '/',
           icon: Users,
-          isActive: true,
         },
       ],
     },
@@ -74,6 +75,8 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -95,7 +98,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenuButton
                       asChild
                       className="group/menu-button font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
-                      isActive={item.isActive}
+                      isActive={pathname === item.url}
                     >
                       <a href={item.url}>
                         {item.icon && (
