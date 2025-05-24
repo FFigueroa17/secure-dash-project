@@ -15,18 +15,17 @@ import type { GetLogsSchema } from './validations';
 export async function getFail2BanLogs(
   input: GetLogsSchema,
 ): Promise<APIResponse<Fail2BanLog>> {
-  console.log('input', input); // Log the input for debugging purposes
   return await unstable_cache(
     async () => {
+      console.log('input', input); // Log the input for debugging purposes
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/fail2ban/logs?${input.toString()}`;
+
       try {
-        const res = await fetch(
-          `http://localhost:8000/fail2ban/logs?${input.toString()}`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
+        const res = await fetch(url, {
+          headers: {
+            'Content-Type': 'application/json',
           },
-        );
+        });
 
         if (!res.ok) {
           throw new Error('Failed to fetch logs');
@@ -64,8 +63,10 @@ export async function getFail2BanLogs(
 export async function getFail2BanLogsOverview(): Promise<Fail2BanOverview> {
   return await unstable_cache(
     async () => {
+      // Build the URL with the API URL from the environment variables
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/fail2ban/stats`;
       try {
-        const res = await fetch(`http://localhost:8000/fail2ban/stats`, {
+        const res = await fetch(url, {
           headers: {
             'Content-Type': 'application/json',
           },
@@ -76,7 +77,6 @@ export async function getFail2BanLogsOverview(): Promise<Fail2BanOverview> {
         }
 
         const response = await res.json();
-        console.log('response', response); // Log the response for debugging purposes
         return response;
       } catch (error) {
         console.error('Error fetching fail2ban logs:', error);

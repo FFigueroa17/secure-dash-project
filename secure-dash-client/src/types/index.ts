@@ -26,4 +26,5 @@ export interface FilterConfig<TData> {
   placeholder?: string;
   options?: Array<{ label: string; value: string }>; // For select/multiSelect
   unit?: string; // For number fields
+  position?: 'left' | 'right'; // Choose where the filter should be placed
 }

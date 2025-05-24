@@ -40,6 +40,27 @@ const LogsTable = ({ promises }: LogsTableProps) => {
             filterType: 'text',
             placeholder: 'Buscar por mensaje',
           },
+          {
+            column: table.getColumn('timestamp')!,
+            label: 'Fecha',
+            filterType: 'dateRange',
+            placeholder: 'Buscar por fecha',
+            position: 'right',
+          },
+          {
+            column: table.getColumn('level')!,
+            label: 'Nivel',
+            filterType: 'select',
+            placeholder: 'Buscar por nivel',
+            options: [
+              { label: 'INFO', value: 'INFO' },
+              { label: 'DEBUG', value: 'DEBUG' },
+              { label: 'ERROR', value: 'ERROR' },
+              { label: 'NOTICE', value: 'NOTICE' },
+              { label: 'UNKNOWN', value: 'UNKNOWN' },
+            ],
+            position: 'right',
+          },
         ]}
       />
     </DataTable>

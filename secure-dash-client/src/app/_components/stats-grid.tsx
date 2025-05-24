@@ -40,7 +40,7 @@ export function StatsCard({ title, value, icon }: StatsCardProps) {
             <span className={cn('font-medium', trendColor)}>
               {isPositive ? '↗' : '↘'} {value.deltaPct ?? 0}%
             </span>{' '}
-            vs last week
+            vs last hour
           </div>
         </div>
       </div>

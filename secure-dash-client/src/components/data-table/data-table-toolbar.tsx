@@ -29,6 +29,10 @@ export function DataTableToolbar<TData>({
     table.resetColumnFilters();
   }, [table]);
 
+  // Separate filters by position
+  const leftFilters = filters.filter((filter) => filter.position !== 'right');
+  const rightFilters = filters.filter((filter) => filter.position === 'right');
+
   return (
     <div
       role="toolbar"
@@ -40,15 +44,17 @@ export function DataTableToolbar<TData>({
       {...props}
     >
       <div className="flex flex-1 flex-wrap items-center gap-2">
-        {filters.map((filter) => (
+        {/* Left-positioned filters */}
+        {leftFilters.map((filter) => (
           <DataTableToolbarFilter key={filter.column.id} filter={filter} />
         ))}
+
+        {/* Reset filters button */}
         {isFiltered && (
           <Button
             aria-label="Reset filters"
-            variant="outline"
+            variant="default"
             size="sm"
-            className="border-dashed"
             onClick={onReset}
           >
             <X />
@@ -56,7 +62,13 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <div className="flex items-center gap-2">{children}</div>
+      <div className="flex items-center gap-2">
+        {/* Right-positioned filters */}
+        {rightFilters.map((filter) => (
+          <DataTableToolbarFilter key={filter.column.id} filter={filter} />
+        ))}
+        {children}
+      </div>
     </div>
   );
 }
@@ -89,16 +101,6 @@ function DataTableToolbarFilter<TData>({
             </div>
           </div>
         );
-      // return (
-      //   <Input
-      //     placeholder={filter.placeholder ?? filter.label}
-      //     value={(filter.column.getFilterValue() as string) ?? ''}
-      //     onChange={(event) =>
-      //       filter.column.setFilterValue(event.target.value)
-      //     }
-      //     className="h-8 w-40 lg:w-56"
-      //   />
-      // );
 
       case 'number':
         return (

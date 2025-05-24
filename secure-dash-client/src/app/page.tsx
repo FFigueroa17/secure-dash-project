@@ -1,16 +1,16 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Experiment 01 - Crafted.is',
+  title: 'Experimento 01 - Crafted.is',
 };
 
 import React from 'react';
 
 import LogsTable from '@/app/_components/logs-table';
+import { StatsGrid } from '@/app/_components/stats-grid';
 import { getFail2BanLogs } from '@/app/_lib/queries';
 import { searchParamsCache } from '@/app/_lib/validations';
 import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton';
-import { StatsGrid } from '@/components/stats-grid';
 import { SearchParams } from '@/types';
 interface IndexPageProps {
   searchParams: Promise<SearchParams>;
@@ -29,13 +29,14 @@ export default async function Page(props: IndexPageProps) {
       {/* Page intro */}
       <div className="flex items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Fail2Ban Logs Overview</h1>
+          <h1 className="text-2xl font-semibold">
+            Resumen de Logs de Fail2Ban
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Review the latest logs and statistics from Fail2Ban. Monitor and
-            manage bans effectively.
+            Revisa los registros y estadísticas más recientes de Fail2Ban.
+            Monitorea y gestiona los bloqueos de manera efectiva.
           </p>
         </div>
-        {/* <Button className="px-3">Add Contact</Button> */}
       </div>
       {/* Numbers */}
       <StatsGrid />

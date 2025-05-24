@@ -60,8 +60,10 @@ export function getLogsTableColumns(
       enableHiding: false,
     },
     {
+      id: 'timestamp',
       header: 'Date',
       accessorKey: 'timestamp',
+      enableColumnFilter: true,
       cell: ({ row }) => {
         const timestamp = row.getValue('timestamp') as string;
         const formattedDate = formatDate(timestamp, {
@@ -147,8 +149,10 @@ export function getLogsTableColumns(
       },
     },
     {
+      id: 'level',
       header: 'Level',
       accessorKey: 'level',
+      enableColumnFilter: true,
       cell: ({ row }) => (
         <div className="flex items-center h-full">
           <Badge
@@ -180,8 +184,10 @@ export function getLogsTableColumns(
       ),
     },
     {
+      id: 'message',
       header: 'Message',
       accessorKey: 'message',
+      enableColumnFilter: true,
       cell: ({ row }) => (
         <Tooltip>
           <TooltipTrigger asChild>
