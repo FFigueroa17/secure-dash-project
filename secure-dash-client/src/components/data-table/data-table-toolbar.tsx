@@ -30,8 +30,15 @@ export function DataTableToolbar<TData>({
   }, [table]);
 
   // Separate filters by position
-  const leftFilters = filters.filter((filter) => filter.position !== 'right');
-  const rightFilters = filters.filter((filter) => filter.position === 'right');
+  // Memoize leftFilters and rightFilters to avoid unnecessary recalculations
+  const leftFilters = React.useMemo(
+    () => filters.filter((filter) => filter.position !== 'right'),
+    [filters],
+  );
+  const rightFilters = React.useMemo(
+    () => filters.filter((filter) => filter.position === 'right'),
+    [filters],
+  );
 
   return (
     <div
