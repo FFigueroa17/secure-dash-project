@@ -60,7 +60,7 @@ export function DataTableFacetedFilter<TData, TValue>({
         column.setFilterValue(filterValues.length ? filterValues : undefined);
       } else {
         column.setFilterValue(isSelected ? undefined : [option.value]);
-        setOpen(false);
+        // setOpen(false);
       }
     },
     [column, multiple, selectedValues],
@@ -146,15 +146,15 @@ export function DataTableFacetedFilter<TData, TValue>({
                   >
                     <div
                       className={cn(
-                        'flex size-4 items-center justify-center rounded-sm border border-primary',
+                        'flex size-4 items-center justify-center rounded-sm border border-foreground transition-all duration-200 cursor-pointer hover:shadow-green-xl hover:[&_svg]:visible hover:[&_svg]:opacity-50 ease-in-out',
                         isSelected
-                          ? 'bg-primary'
-                          : 'opacity-50 [&_svg]:invisible',
+                          ? 'bg-primary border-primary-foreground/25 shadow-green-xl'
+                          : 'opacity-50 [&_svg]:invisible shadow-none',
                       )}
                     >
-                      <Check />
+                      <Check className="size-3 text-white" />
                     </div>
-                    {option.icon && <option.icon />}
+                    {option.icon && <option.icon strokeWidth={1.5} />}
                     <span className="truncate">{option.label}</span>
                     {option.count && (
                       <span className="ml-auto font-mono text-xs">

@@ -17,8 +17,33 @@ export async function getFail2BanLogs(
 ): Promise<APIResponse<Fail2BanLog>> {
   return await unstable_cache(
     async () => {
-      console.log('input', input); // Log the input for debugging purposes
-      const url = `${process.env.NEXT_PUBLIC_API_URL}/fail2ban/logs?${input.toString()}`;
+      // Create URLSearchParams from the input object
+      const searchParams = new URLSearchParams();
+
+      // Add pagination parameters (map perPage to size as expected by API)
+      searchParams.set('page', (input.page - 1).toString()); // API expects 0-based pagination
+      searchParams.set('size', input.perPage.toString());
+
+      // Add optional filter parameters if they exist
+      if (input.message) {
+        searchParams.set('filter_text', input.message);
+      }
+
+      if (input.level) {
+        searchParams.set('level', input.level);
+      }
+
+      // Handle timestamp array for start and end parameters
+      if (input.timestamp && input.timestamp.length > 0) {
+        if (input.timestamp[0]) {
+          searchParams.set('start', (input.timestamp[0] / 1000).toString());
+        }
+        if (input.timestamp[1]) {
+          searchParams.set('end', (input.timestamp[1] / 1000).toString());
+        }
+      }
+
+      const url = `${process.env.NEXT_PUBLIC_API_URL}/fail2ban/logs?${searchParams.toString()}`;
 
       try {
         const res = await fetch(url, {
@@ -28,6 +53,7 @@ export async function getFail2BanLogs(
         });
 
         if (!res.ok) {
+          console.error('Failed to fetch logs:', res.statusText);
           throw new Error('Failed to fetch logs');
         }
 
@@ -82,9 +108,10 @@ export async function getFail2BanLogsOverview(): Promise<Fail2BanOverview> {
         console.error('Error fetching fail2ban logs:', error);
         // Return a default response structure in case of an error
         return {
-          overview: {
-            stat: [],
-          },
+          logs_difference: 0,
+          parse_rate: 0,
+          ban_events: 0,
+          warn_error_logs: 0,
         };
       }
     },

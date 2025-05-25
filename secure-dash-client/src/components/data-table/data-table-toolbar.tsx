@@ -137,6 +137,7 @@ function DataTableToolbarFilter<TData>({
             column={filter.column}
             title={filter.label ?? filter.column.id}
             multiple={filter.filterType === 'dateRange'}
+            disableFutureDates={filter.disableFutureDates}
           />
         );
 

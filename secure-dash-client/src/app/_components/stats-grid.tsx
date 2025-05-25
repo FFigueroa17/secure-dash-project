@@ -3,16 +3,15 @@ import { ArrowUpRight } from 'lucide-react';
 import { getFail2BanLogsOverview } from '@/app/_lib/queries';
 import { formatTitle, getIcon } from '@/app/_lib/utils';
 import { cn } from '@/lib/utils';
-import { StatValue } from '@/schemas/log';
 
 interface StatsCardProps {
   title: string;
-  value: StatValue;
+  value: number;
   icon: React.ReactNode;
 }
 
 export function StatsCard({ title, value, icon }: StatsCardProps) {
-  const isPositive = value.deltaPct !== null && value.deltaPct > 0;
+  const isPositive = value > 0;
   const trendColor = isPositive ? 'text-emerald-500' : 'text-red-500';
 
   return (
@@ -35,10 +34,10 @@ export function StatsCard({ title, value, icon }: StatsCardProps) {
           >
             {title}
           </a>
-          <div className="text-2xl font-semibold mb-2">{value.value}</div>
+          <div className="text-2xl font-semibold mb-2">{value}</div>
           <div className="text-xs text-muted-foreground/60">
             <span className={cn('font-medium', trendColor)}>
-              {isPositive ? '↗' : '↘'} {value.deltaPct ?? 0}%
+              {isPositive ? '↗' : '↘'} {value}%
             </span>{' '}
             vs last hour
           </div>
@@ -53,7 +52,7 @@ export async function StatsGrid() {
 
   return (
     <div className="grid grid-cols-2 min-[1200px]:grid-cols-4 border border-border rounded-xl bg-gradient-to-br from-sidebar/60 to-sidebar">
-      {Object.entries(stats.overview).map(([key, value]) => (
+      {Object.entries(stats).map(([key, value]) => (
         <StatsCard
           key={key}
           title={formatTitle(key)}

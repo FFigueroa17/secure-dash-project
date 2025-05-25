@@ -2,19 +2,20 @@ import { Ban, Circle, Shield, XCircle } from 'lucide-react';
 
 export function getIcon(key: string) {
   switch (key) {
-    case 'totalFailures':
+    case 'logs_difference':
       return <XCircle size={20} aria-hidden="true" />;
-    case 'totalBans':
+    case 'parse_rate':
       return <Ban size={20} aria-hidden="true" />;
-    case 'uniqueIPs':
+    case 'ban_events':
       return <Circle size={20} aria-hidden="true" />;
-    case 'activeBans':
+    case 'warn_error_logs':
       return <Shield size={20} aria-hidden="true" />;
   }
 }
 
 export function formatTitle(key: string) {
   return key
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/^./, (str) => str.toUpperCase());
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }

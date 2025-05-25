@@ -37,21 +37,11 @@ export interface APIResponse<TData> {
 }
 
 /**
- * Represents a statistical value with its delta percentage change
- */
-export interface StatValue {
-  value: number;
-  deltaPct: number | null;
-}
-
-/**
  * Represents the overview statistics from Fail2Ban
  */
 export interface Fail2BanOverview {
-  overview: {
-    totalFailures: StatValue;
-    totalBans: StatValue;
-    uniqueIPs: StatValue;
-    activeBans: StatValue;
-  };
+  logs_difference: number;
+  parse_rate: number;
+  ban_events: number;
+  warn_error_logs: number;
 }

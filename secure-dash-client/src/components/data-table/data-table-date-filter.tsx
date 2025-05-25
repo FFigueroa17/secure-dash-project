@@ -25,12 +25,14 @@ interface DataTableDateFilterProps<TData> {
   column: Column<TData, unknown>;
   title?: string;
   multiple?: boolean;
+  disableFutureDates?: boolean;
 }
 
 export function DataTableDateFilter<TData>({
   column,
   title,
   multiple,
+  disableFutureDates = false,
 }: DataTableDateFilterProps<TData>) {
   const columnFilterValue = column.getFilterValue();
 
@@ -102,7 +104,7 @@ export function DataTableDateFilter<TData>({
       const hasSelectedDates = selectedDates.from || selectedDates.to;
       const dateText = hasSelectedDates
         ? formatDateRange(selectedDates)
-        : 'Select date range';
+        : 'Seleccionar rango de fechas';
 
       return (
         <span className="flex items-center gap-2">
@@ -125,7 +127,7 @@ export function DataTableDateFilter<TData>({
     const hasSelectedDate = selectedDates.length > 0;
     const dateText = hasSelectedDate
       ? formatDate(selectedDates[0])
-      : 'Select date';
+      : 'Seleccionar fecha';
 
     return (
       <span className="flex items-center gap-2">
@@ -174,6 +176,7 @@ export function DataTableDateFilter<TData>({
                 : { from: undefined, to: undefined }
             }
             onSelect={onSelect}
+            disabled={disableFutureDates ? { after: new Date() } : undefined}
           />
         ) : (
           <Calendar
@@ -183,6 +186,7 @@ export function DataTableDateFilter<TData>({
               !getIsDateRange(selectedDates) ? selectedDates[0] : undefined
             }
             onSelect={onSelect}
+            disabled={disableFutureDates ? { after: new Date() } : undefined}
           />
         )}
       </PopoverContent>
