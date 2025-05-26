@@ -26,9 +26,9 @@ export function connectToFail2BanWebSocket(
   const connect = () => {
     ws = new WebSocket(wsUrl);
 
-    ws.onopen = () => {
-      console.log('WebSocket connection established for Fail2Ban logs.');
-    };
+    // ws.onopen = () => {
+    //   console.log('WebSocket connection established for Fail2Ban logs.');
+    // };
 
     ws.onmessage = (event) => {
       try {
@@ -50,17 +50,17 @@ export function connectToFail2BanWebSocket(
     };
 
     ws.onclose = (event) => {
-      console.log(
-        'WebSocket connection closed for Fail2Ban logs. Code:',
-        event.code,
-        'Reason:',
-        event.reason,
-      );
+      // console.log(
+      //   'WebSocket connection closed for Fail2Ban logs. Code:',
+      //   event.code,
+      //   'Reason:',
+      //   event.reason,
+      // );
       // Optionally attempt to reconnect if the closure was unexpected
       if (!event.wasClean) {
-        console.log(
-          'WebSocket connection closed unexpectedly. Attempting to reconnect...',
-        );
+        // console.log(
+        //   'WebSocket connection closed unexpectedly. Attempting to reconnect...',
+        // );
         setTimeout(connect, 5000); // Reconnect after 5 seconds
       }
     };
@@ -72,7 +72,7 @@ export function connectToFail2BanWebSocket(
   return () => {
     if (ws) {
       ws.close(1000, 'Client initiated disconnect'); // 1000 indicates a normal closure
-      console.log('Fail2Ban logs WebSocket connection manually closed.');
+      // console.log('Fail2Ban logs WebSocket connection manually closed.');
     }
   };
 }

@@ -26,8 +26,8 @@ export function RealtimeLogToast() {
       description: `${log.message.substring(0, 100)}${log.message.length > 100 ? '...' : ''}`,
       duration: 8000, // Keep toast visible for 8 seconds
       action: {
-        label: 'Details',
-        onClick: () => console.log('Log details:', log),
+        label: 'Detalles',
+        onClick: () => console.warn('Log details:', log),
       },
       style: {
         animation: 'fadeIn 0.5s ease-out',
@@ -91,9 +91,9 @@ export function RealtimeLogToast() {
         clearTimeout(toastTimerRef.current);
       }
       closeWebSocket();
-      console.log(
-        'RealtimeLogToast unmounted, WebSocket closed and timer cleared.',
-      );
+      // console.log(
+      //   'RealtimeLogToast unmounted, WebSocket closed and timer cleared.',
+      // );
     };
   }, []); // Empty dependency array to run only on mount and unmount
 
