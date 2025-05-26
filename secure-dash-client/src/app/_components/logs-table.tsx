@@ -7,6 +7,7 @@
  *  - Column-based filtering (text, date range, select)
  *  - Pagination and server-side data fetching
  *  - CSV export of selected rows
+ *  - Log details sheet for viewing individual log entries
  *
  * Props:
  *   - promises: A Promise resolving to the paginated Fail2Ban logs API response.
@@ -41,7 +42,6 @@ const LogsTable = ({ promises }: LogsTableProps) => {
   const data = React.use(promises);
 
   // Memoize the columns definition for the table.
-  // setRowAction is a no-op here, but could be used for row actions in the future.
   const columns = React.useMemo(
     () => getLogsTableColumns({ setRowAction: () => {} }),
     [],

@@ -1,25 +1,13 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import {
-  AlertTriangle,
-  CircleAlert,
-  Ellipsis,
-  FileText,
-  Info,
-} from 'lucide-react';
+import { AlertTriangle, CircleAlert, FileText, Info } from 'lucide-react';
 import * as React from 'react';
 
+import { LogDetailsSheet } from '@/app/_components/log-details-sheet';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CopyButton } from '@/components/ui/copy-button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Tooltip,
   TooltipContent,
@@ -246,37 +234,32 @@ export function getLogsTableColumns(
     {
       id: 'actions',
       header: () => <span className="sr-only">Acciones</span>,
-      cell: () => {
-        return (
-          <div className="flex justify-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="shadow-none text-muted-foreground/60 hover:bg-muted hover:text-foreground"
-                  aria-label="Acciones de fila"
-                >
-                  <Ellipsis className="size-5" size={20} aria-hidden="true" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                // onClick={() => setRowAction({ row: row, variant: 'update' })}
-                >
-                  Ver detalles
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                // onClick={() => setRowAction({ row: row, variant: 'delete' })}
-                >
-                  Eliminar log
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        );
+      cell: ({ row }) => {
+        return <LogDetailsSheet log={row.original || null} />;
+        // return (
+        //   <div className="flex justify-end">
+        //     <DropdownMenu>
+        //       <DropdownMenuTrigger asChild>
+        //         <Button
+        //           size="icon"
+        //           variant="ghost"
+        //           className="shadow-none text-muted-foreground/60 hover:bg-muted hover:text-foreground"
+        //           aria-label="Acciones de fila"
+        //         >
+        //           <Ellipsis className="size-5" size={20} aria-hidden="true" />
+        //         </Button>
+        //       </DropdownMenuTrigger>
+        //       <DropdownMenuContent align="end">
+        //         <DropdownMenuItem asChild>
+        //           {/* Log Details Sheet */}
+        //           <LogDetailsSheet log={row.original || null} />
+        //         </DropdownMenuItem>
+        //       </DropdownMenuContent>
+        //     </DropdownMenu>
+        //   </div>
+        // );
       },
-      size: 60,
+      size: 80,
       enableHiding: false,
     },
   ];
