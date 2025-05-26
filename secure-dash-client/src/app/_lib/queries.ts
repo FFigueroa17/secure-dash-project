@@ -74,7 +74,7 @@ export async function getFail2BanLogs(
     },
     [JSON.stringify(input)], // Cache key based on the input
     {
-      revalidate: 3600, // Revalidate cache every 1 hour
+      revalidate: 1, // Revalidate cache every 6 minutes
       tags: ['fail2ban-logs'], // Tag for cache management
     },
   )();
@@ -117,7 +117,7 @@ export async function getFail2BanLogsOverview(): Promise<Fail2BanOverview> {
     },
     [], // No cache key dependencies
     {
-      revalidate: 3600, // Revalidate cache every 1 hour
+      revalidate: 1, // Revalidate cache every 6 minutes
       tags: ['fail2ban-logs-overview'], // Tag for cache management
     },
   )();

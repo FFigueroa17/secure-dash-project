@@ -97,14 +97,14 @@ export function getLogsTableColumns(
             (table.getIsSomePageRowsSelected() && 'indeterminate')
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
+          aria-label="Seleccionar todo"
         />
       ),
       cell: ({ row }) => (
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
+          aria-label="Seleccionar fila"
         />
       ),
       size: 28,
@@ -113,7 +113,7 @@ export function getLogsTableColumns(
     },
     {
       id: 'timestamp',
-      header: 'Date',
+      header: 'Fecha',
       accessorKey: 'timestamp',
       enableColumnFilter: true,
       cell: ({ row }) => {
@@ -134,7 +134,9 @@ export function getLogsTableColumns(
               </span>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Full timestamp: {new Date(timestamp).toLocaleString()}</p>
+              <p>
+                Fecha y hora completa: {new Date(timestamp).toLocaleString()}
+              </p>
             </TooltipContent>
           </Tooltip>
         );
@@ -142,7 +144,7 @@ export function getLogsTableColumns(
       size: 180,
     },
     {
-      header: 'Service',
+      header: 'Servicio',
       accessorKey: 'service',
       cell: ({ row }) => (
         <span className="text-muted-foreground capitalize">
@@ -163,7 +165,7 @@ export function getLogsTableColumns(
       },
     },
     {
-      header: 'Event Type',
+      header: 'Tipo de Evento',
       accessorKey: 'eventType',
       cell: ({ row }) => {
         const eventType = row.getValue('eventType') as string | null;
@@ -175,7 +177,7 @@ export function getLogsTableColumns(
       },
     },
     {
-      header: 'IP Details',
+      header: 'Detalles IP',
       accessorKey: 'ip',
       cell: ({ row }) => {
         const ip = row.getValue('ip') as string | null;
@@ -183,7 +185,7 @@ export function getLogsTableColumns(
         if (!ip)
           return (
             <Badge variant="outline" className="font-mono text-xs opacity-75">
-              {'No IP details'}
+              {'Sin detalles de IP'}
             </Badge>
           );
 
@@ -195,14 +197,14 @@ export function getLogsTableColumns(
             >
               {ip}
             </Badge>
-            <CopyButton value={ip} tooltipMessage={`Copy IP: ${ip}`} />
+            <CopyButton value={ip} tooltipMessage={`Copiar IP: ${ip}`} />
           </div>
         );
       },
     },
     {
       id: 'level',
-      header: 'Level',
+      header: 'Nivel',
       accessorKey: 'level',
       enableColumnFilter: true,
       cell: ({ row }) => {
@@ -224,7 +226,7 @@ export function getLogsTableColumns(
     },
     {
       id: 'message',
-      header: 'Message',
+      header: 'Mensaje',
       accessorKey: 'message',
       enableColumnFilter: true,
       cell: ({ row }) => (
@@ -243,7 +245,7 @@ export function getLogsTableColumns(
     },
     {
       id: 'actions',
-      header: () => <span className="sr-only">Actions</span>,
+      header: () => <span className="sr-only">Acciones</span>,
       cell: () => {
         return (
           <div className="flex justify-end">
@@ -253,7 +255,7 @@ export function getLogsTableColumns(
                   size="icon"
                   variant="ghost"
                   className="shadow-none text-muted-foreground/60 hover:bg-muted hover:text-foreground"
-                  aria-label="Row actions"
+                  aria-label="Acciones de fila"
                 >
                   <Ellipsis className="size-5" size={20} aria-hidden="true" />
                 </Button>
@@ -262,12 +264,12 @@ export function getLogsTableColumns(
                 <DropdownMenuItem
                 // onClick={() => setRowAction({ row: row, variant: 'update' })}
                 >
-                  View details
+                  Ver detalles
                 </DropdownMenuItem>
                 <DropdownMenuItem
                 // onClick={() => setRowAction({ row: row, variant: 'delete' })}
                 >
-                  Delete log
+                  Eliminar log
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

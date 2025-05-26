@@ -34,7 +34,7 @@ export function StatsCard({ title, value, icon }: StatsCardProps) {
             {/* <span className={cn('font-medium', trendColor)}>
               {isPositive ? '↗' : '↘'} {value}%
             </span>{' '} */}
-            vs last hour
+            vs última hora
           </div>
         </div>
       </div>
