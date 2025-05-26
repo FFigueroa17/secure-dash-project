@@ -1,7 +1,13 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import { Check, CircleAlert, Ellipsis } from 'lucide-react';
+import {
+  AlertTriangle,
+  CircleAlert,
+  Ellipsis,
+  FileText,
+  Info,
+} from 'lucide-react';
 import * as React from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +35,52 @@ interface GetLogsTableColumnsProps {
     React.SetStateAction<DataTableRowAction<Fail2BanLog> | null>
   >;
 }
+
+// Helper function to get log level styling and icon
+const getLogLevelConfig = (level: string) => {
+  switch (level) {
+    case 'INFO':
+      return {
+        icon: <FileText className="text-info" size={14} aria-hidden="true" />,
+        badgeClass: 'border-info/20 text-info',
+      };
+    case 'DEBUG':
+      return {
+        icon: <Info className="text-info" size={14} aria-hidden="true" />,
+        badgeClass: 'border-info/20 text-info',
+      };
+    case 'NOTICE':
+      return {
+        icon: <Info className="text-warning" size={14} aria-hidden="true" />,
+        badgeClass: 'border-warning/20 text-warning',
+      };
+    case 'WARNING':
+      return {
+        icon: (
+          <AlertTriangle
+            className="text-amber-500"
+            size={14}
+            aria-hidden="true"
+          />
+        ),
+        badgeClass: 'border-amber-100 text-amber-700',
+      };
+    case 'ERROR':
+      return {
+        icon: (
+          <CircleAlert className="text-error" size={14} aria-hidden="true" />
+        ),
+        badgeClass: 'border-error/20 text-error',
+      };
+    default:
+      return {
+        icon: (
+          <CircleAlert className="text-info" size={14} aria-hidden="true" />
+        ),
+        badgeClass: 'border-info/20 text-info',
+      };
+  }
+};
 
 export function getLogsTableColumns(
   {
@@ -153,35 +205,22 @@ export function getLogsTableColumns(
       header: 'Level',
       accessorKey: 'level',
       enableColumnFilter: true,
-      cell: ({ row }) => (
-        <div className="flex items-center h-full">
-          <Badge
-            variant="outline"
-            className={cn(
-              'gap-1 py-0.5 px-2 text-sm',
-              row.original.level === 'INFO'
-                ? 'text-muted-foreground'
-                : 'text-primary-foreground',
-            )}
-          >
-            {row.original.level === 'INFO' && (
-              <Check
-                className="text-emerald-500"
-                size={14}
-                aria-hidden="true"
-              />
-            )}
-            {row.original.level === 'DEBUG' && (
-              <CircleAlert
-                className="text-yellow-500"
-                size={14}
-                aria-hidden="true"
-              />
-            )}
-            {row.original.level}
-          </Badge>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const level = row.getValue('level') as string;
+        const { icon, badgeClass } = getLogLevelConfig(level);
+
+        return (
+          <div className="flex items-center h-full">
+            <Badge
+              variant="outline"
+              className={cn('gap-1 py-0.5 px-2 text-sm', badgeClass)}
+            >
+              {icon}
+              {level}
+            </Badge>
+          </div>
+        );
+      },
     },
     {
       id: 'message',

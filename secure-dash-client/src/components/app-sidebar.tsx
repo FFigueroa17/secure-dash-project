@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  ChartLine,
-  Cog,
-  LayoutDashboard,
-  Leaf,
-  LogOut,
-  Users,
-} from 'lucide-react';
+import { ChartLine, LayoutDashboard, LogOut, Users } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
 
@@ -36,11 +29,11 @@ const data = {
   ],
   navMain: [
     {
-      title: 'Sections',
+      title: 'Secciones',
       items: [
         {
           title: 'Dashboard',
-          url: '/realtime-logs',
+          url: '/dashboard',
           icon: LayoutDashboard,
         },
         {
@@ -55,22 +48,22 @@ const data = {
         },
       ],
     },
-    {
-      title: 'Other',
-      url: '#',
-      items: [
-        {
-          title: 'Settings',
-          url: '#',
-          icon: Cog,
-        },
-        {
-          title: 'Help Center',
-          url: '#',
-          icon: Leaf,
-        },
-      ],
-    },
+    // {
+    //   title: 'Other',
+    //   url: '#',
+    //   items: [
+    //     {
+    //       title: 'Settings',
+    //       url: '#',
+    //       icon: Cog,
+    //     },
+    //     {
+    //       title: 'Help Center',
+    //       url: '#',
+    //       icon: Leaf,
+    //     },
+    //   ],
+    // },
   ],
 };
 
@@ -128,7 +121,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 size={22}
                 aria-hidden="true"
               />
-              <span>Sign Out</span>
+              <span>Cerrar sesión</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

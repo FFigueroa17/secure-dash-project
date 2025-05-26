@@ -4,7 +4,7 @@ import { LucideShieldAlert } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
-import { Alert } from '@/app/realtime-logs/_lib/types';
+import { Alert } from '@/app/dashboard/_lib/types';
 import { Badge } from '@/components/ui/badge';
 import { CopyButton } from '@/components/ui/copy-button';
 

@@ -3,7 +3,7 @@
 import { TrendingUp } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 
-import { TrendPoint } from '@/app/realtime-logs/_lib/types';
+import { TrendPoint } from '@/app/dashboard/_lib/types';
 import {
   Card,
   CardContent,

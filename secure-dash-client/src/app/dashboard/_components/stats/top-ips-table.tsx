@@ -2,7 +2,7 @@
 
 import { Shield, ShieldAlert } from 'lucide-react';
 
-import { TopIP } from '@/app/realtime-logs/_lib/types';
+import { TopIP } from '@/app/dashboard/_lib/types';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,

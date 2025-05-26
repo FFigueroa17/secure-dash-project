@@ -2,7 +2,6 @@ import { ArrowUpRight } from 'lucide-react';
 
 import { getFail2BanLogsOverview } from '@/app/_lib/queries';
 import { formatTitle, getIcon } from '@/app/_lib/utils';
-import { cn } from '@/lib/utils';
 
 interface StatsCardProps {
   title: string;
@@ -11,9 +10,6 @@ interface StatsCardProps {
 }
 
 export function StatsCard({ title, value, icon }: StatsCardProps) {
-  const isPositive = value > 0;
-  const trendColor = isPositive ? 'text-emerald-500' : 'text-red-500';
-
   return (
     <div className="relative p-4 lg:p-5 group before:absolute before:inset-y-8 before:right-0 before:w-px before:bg-gradient-to-b before:from-input/30 before:via-input before:to-input/30 last:before:hidden">
       <div className="relative flex items-center gap-4">
@@ -28,17 +24,16 @@ export function StatsCard({ title, value, icon }: StatsCardProps) {
         </div>
         {/* Content */}
         <div>
-          <a
-            href="#"
-            className="font-medium tracking-widest text-xs uppercase text-muted-foreground/60 before:absolute before:inset-0"
-          >
+          <h3 className="font-medium tracking-widest text-xs uppercase text-muted-foreground/60 before:absolute before:inset-0 mb-2">
             {title}
-          </a>
-          <div className="text-2xl font-semibold mb-2">{value}</div>
+          </h3>
+          <div className="text-2xl font-semibold mb-2">
+            {Number.isFinite(value) ? value.toFixed(1) : value}
+          </div>
           <div className="text-xs text-muted-foreground/60">
-            <span className={cn('font-medium', trendColor)}>
+            {/* <span className={cn('font-medium', trendColor)}>
               {isPositive ? '↗' : '↘'} {value}%
-            </span>{' '}
+            </span>{' '} */}
             vs last hour
           </div>
         </div>
