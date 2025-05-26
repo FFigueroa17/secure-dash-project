@@ -8,6 +8,7 @@ import React from 'react';
 
 import LogsTable from '@/app/_components/logs-table';
 import { StatsGrid } from '@/app/_components/stats-grid';
+import StatsGridSkeleton from '@/app/_components/stats-grid-skeleton';
 import { getFail2BanLogs } from '@/app/_lib/queries';
 import { searchParamsCache } from '@/app/_lib/validations';
 import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton';
@@ -39,7 +40,9 @@ export default async function Page(props: IndexPageProps) {
         </div>
       </div>
       {/* Numbers */}
-      <StatsGrid />
+      <React.Suspense fallback={<StatsGridSkeleton />}>
+        <StatsGrid />
+      </React.Suspense>
       {/* Table */}
       <div className="min-h-[100vh] flex-1 md:min-h-min">
         <React.Suspense
