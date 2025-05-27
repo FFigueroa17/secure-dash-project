@@ -1,11 +1,7 @@
-import {
-  ChartLine,
-  Cog,
-  LayoutDashboard,
-  Leaf,
-  LogOut,
-  Users,
-} from 'lucide-react';
+'use client';
+
+import { ChartLine, LayoutDashboard, LogOut, Users } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import * as React from 'react';
 
 import { SearchForm } from '@/components/search-form';
@@ -33,12 +29,11 @@ const data = {
   ],
   navMain: [
     {
-      title: 'Sections',
-      url: '#',
+      title: 'Secciones',
       items: [
         {
           title: 'Dashboard',
-          url: '#',
+          url: '/dashboard',
           icon: LayoutDashboard,
         },
         {
@@ -48,32 +43,33 @@ const data = {
         },
         {
           title: 'Fail2Ban Logs',
-          url: '#',
+          url: '/',
           icon: Users,
-          isActive: true,
         },
       ],
     },
-    {
-      title: 'Other',
-      url: '#',
-      items: [
-        {
-          title: 'Settings',
-          url: '#',
-          icon: Cog,
-        },
-        {
-          title: 'Help Center',
-          url: '#',
-          icon: Leaf,
-        },
-      ],
-    },
+    // {
+    //   title: 'Other',
+    //   url: '#',
+    //   items: [
+    //     {
+    //       title: 'Settings',
+    //       url: '#',
+    //       icon: Cog,
+    //     },
+    //     {
+    //       title: 'Help Center',
+    //       url: '#',
+    //       icon: Leaf,
+    //     },
+    //   ],
+    // },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -95,7 +91,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenuButton
                       asChild
                       className="group/menu-button font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
-                      isActive={item.isActive}
+                      isActive={pathname === item.url}
                     >
                       <a href={item.url}>
                         {item.icon && (
@@ -125,7 +121,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 size={22}
                 aria-hidden="true"
               />
-              <span>Sign Out</span>
+              <span>Cerrar sesión</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

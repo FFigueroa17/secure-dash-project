@@ -1,21 +1,19 @@
 import {
   createSearchParamsCache,
+  parseAsArrayOf,
   parseAsInteger,
   parseAsString,
 } from 'nuqs/server';
 
-import { getFiltersStateParser, getSortingStateParser } from '@/lib/parsers';
-import { Fail2BanLog } from '@/schemas/log';
-
 export const searchParamsCache = createSearchParamsCache({
+  // Pagination
   page: parseAsInteger.withDefault(1),
   perPage: parseAsInteger.withDefault(10),
-  sort: getSortingStateParser<Fail2BanLog>().withDefault([
-    { id: 'timestamp', desc: true },
-  ]),
+
+  // Filters
   message: parseAsString.withDefault(''),
   level: parseAsString.withDefault(''),
-  filters: getFiltersStateParser().withDefault([]),
+  timestamp: parseAsArrayOf(parseAsInteger, ',').withDefault([]),
 });
 
 export type GetLogsSchema = Awaited<ReturnType<typeof searchParamsCache.parse>>;

@@ -1,5 +1,7 @@
 import { Column } from '@tanstack/react-table';
 
+import { Option } from '@/types/data-table';
+
 export type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
@@ -23,7 +25,9 @@ export interface FilterConfig<TData> {
     | 'dateRange'
     | 'select'
     | 'multiSelect';
+  disableFutureDates?: boolean; // For dateRange filter
   placeholder?: string;
-  options?: Array<{ label: string; value: string }>; // For select/multiSelect
+  options?: Array<Option>; // For select/multiSelect
   unit?: string; // For number fields
+  position?: 'left' | 'right'; // Choose where the filter should be placed
 }

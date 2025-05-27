@@ -10,12 +10,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepare": "husky",
     "lint:fix": "next lint --fix --file",
-    "format": "prettier --write",
+    "format": "npx prettier --write '**/*.{js,jsx,ts,tsx,md,css,json}'",
     "lint-staged": "lint-staged"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "npm --prefix secure-dash-client run lint:fix"
+      "npm --prefix secure-dash-client run format"
     ],
     "*.{md,css,json}": [
       "npx --no-install --prefix secure-dash-client prettier --write"
@@ -47,6 +47,7 @@
     "react": "^19.0.0",
     "react-day-picker": "^8.10.1",
     "react-dom": "^19.0.0",
+    "recharts": "^2.15.3",
     "server-only": "^0.0.1",
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.3.0"

@@ -40,9 +40,9 @@ const DataTablePagination = <TData,>({
               className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              aria-label="Go to previous page"
+              aria-label="Ir a la página anterior"
             >
-              Previous
+              Anterior
             </Button>
           </PaginationItem>
           <PaginationItem>
@@ -51,9 +51,9 @@ const DataTablePagination = <TData,>({
               className="aria-disabled:pointer-events-none aria-disabled:opacity-50"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              aria-label="Go to next page"
+              aria-label="Ir a la página siguiente"
             >
-              Next
+              Siguiente
             </Button>
           </PaginationItem>
         </PaginationContent>

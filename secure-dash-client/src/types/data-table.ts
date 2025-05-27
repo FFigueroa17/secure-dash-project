@@ -19,5 +19,5 @@ export interface ExtendedColumnFilter<TData> extends FilterItemSchema {
 
 export interface DataTableRowAction<TData> {
   row: Row<TData>;
-  variant: 'update' | 'delete';
+  variant: 'view' | 'update' | 'delete';
 }
