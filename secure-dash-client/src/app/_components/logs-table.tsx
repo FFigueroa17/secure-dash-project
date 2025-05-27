@@ -16,11 +16,13 @@
  *   <LogsTable promises={getFail2BanLogs(...)} />
  */
 
-import { Download, Info } from 'lucide-react';
-import React from 'react';
+import { Download } from 'lucide-react';
+import React, { useTransition } from 'react';
 
 import { getLogsTableColumns } from '@/app/_components/logs-table-columns';
 import { getFail2BanLogs } from '@/app/_lib/queries';
+import { getLogLevelConfig } from '@/app/_lib/utils';
+import AnimatedLoading from '@/components/animated-loading';
 import DataTable from '@/components/data-table/data-table';
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
 import { Button } from '@/components/ui/button';
@@ -41,6 +43,8 @@ const LogsTable = ({ promises }: LogsTableProps) => {
   // Await the logs data from the provided promise.
   const data = React.use(promises);
 
+  const [isPending, startTransition] = useTransition();
+
   // Memoize the columns definition for the table.
   const columns = React.useMemo(
     () => getLogsTableColumns({ setRowAction: () => {} }),
@@ -54,61 +58,90 @@ const LogsTable = ({ promises }: LogsTableProps) => {
     pageCount: data.totalPages,
     shallow: false,
     clearOnDefault: true,
+    startTransition,
   });
 
   return (
-    <DataTable table={table} columns={columns} actionBar={<></>}>
-      {/* DataTableToolbar provides filtering and export actions */}
-      <DataTableToolbar
+    <>
+      <AnimatedLoading isLoading={isPending} />
+      <DataTable
         table={table}
-        filters={[
-          {
-            column: table.getColumn('message')!, // Text filter for message column
-            label: 'Mensaje',
-            filterType: 'text',
-            placeholder: 'Buscar por mensaje',
-          },
-          {
-            column: table.getColumn('timestamp')!, // Date range filter for timestamp
-            label: 'Fecha',
-            filterType: 'dateRange',
-            placeholder: 'Buscar por fecha',
-            position: 'left',
-            disableFutureDates: true,
-          },
-          {
-            column: table.getColumn('level')!, // Select filter for log level
-            label: 'Nivel',
-            filterType: 'select',
-            placeholder: 'Buscar por nivel',
-            position: 'left',
-            options: [
-              { label: 'INFO', value: 'INFO', icon: Info },
-              { label: 'DEBUG', value: 'DEBUG', icon: Info },
-              { label: 'NOTICE', value: 'NOTICE', icon: Info },
-              { label: 'ERROR', value: 'ERROR', icon: Info },
-              { label: 'WARNING', value: 'WARNING', icon: Info },
-            ],
-          },
-        ]}
+        columns={columns}
+        actionBar={<></>}
+        isPending={isPending}
       >
-        {/* Export button: enabled only if at least one row is selected */}
-        <Button
-          variant="filter"
-          disabled={table.getFilteredSelectedRowModel().rows.length === 0}
-          onClick={() =>
-            exportTableToCSV(table, {
-              filename: 'fail2ban-logs',
-              excludeColumns: ['select', 'actions'],
-              onlySelected: true,
-            })
-          }
+        {/* DataTableToolbar provides filtering and export actions */}
+        <DataTableToolbar
+          table={table}
+          filters={[
+            {
+              column: table.getColumn('message')!, // Text filter for message column
+              label: 'Mensaje',
+              filterType: 'text',
+              placeholder: 'Buscar por mensaje',
+            },
+            {
+              column: table.getColumn('timestamp')!, // Date range filter for timestamp
+              label: 'Fecha',
+              filterType: 'dateRange',
+              placeholder: 'Buscar por fecha',
+              position: 'left',
+              disableFutureDates: true,
+            },
+            {
+              column: table.getColumn('level')!, // Select filter for log level
+              label: 'Nivel',
+              filterType: 'select',
+              placeholder: 'Buscar por nivel',
+              position: 'left',
+              options: [
+                {
+                  label: 'INFO',
+                  value: 'INFO',
+                  icon: getLogLevelConfig('INFO').icon,
+                },
+                {
+                  label: 'DEBUG',
+                  value: 'DEBUG',
+                  icon: getLogLevelConfig('DEBUG').icon,
+                },
+                {
+                  label: 'NOTICE',
+                  value: 'NOTICE',
+                  icon: getLogLevelConfig('NOTICE').icon,
+                },
+                {
+                  label: 'ERROR',
+                  value: 'ERROR',
+                  icon: getLogLevelConfig('ERROR').icon,
+                },
+                {
+                  label: 'WARNING',
+                  value: 'WARNING',
+                  icon: getLogLevelConfig('WARNING').icon,
+                },
+              ],
+            },
+          ]}
         >
-          <Download strokeWidth={1.5} />
-          Exportar
-        </Button>
-      </DataTableToolbar>
-    </DataTable>
+          {/* Export button: enabled only if at least one row is selected */}
+          <Button
+            variant="filter"
+            disabled={table.getFilteredSelectedRowModel().rows.length === 0}
+            onClick={() =>
+              exportTableToCSV(table, {
+                filename: 'fail2ban-logs',
+                excludeColumns: ['select', 'actions'],
+                onlySelected: true,
+              })
+            }
+          >
+            <Download strokeWidth={1.5} />
+            Exportar
+          </Button>
+        </DataTableToolbar>
+      </DataTable>
+    </>
   );
 };
 

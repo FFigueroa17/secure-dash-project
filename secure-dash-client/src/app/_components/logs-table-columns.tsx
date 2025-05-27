@@ -1,10 +1,10 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
-import { AlertTriangle, CircleAlert, FileText, Info } from 'lucide-react';
 import * as React from 'react';
 
 import { LogDetailsSheet } from '@/app/_components/log-details-sheet';
+import { getLogLevelConfig } from '@/app/_lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CopyButton } from '@/components/ui/copy-button';
@@ -23,52 +23,6 @@ interface GetLogsTableColumnsProps {
     React.SetStateAction<DataTableRowAction<Fail2BanLog> | null>
   >;
 }
-
-// Helper function to get log level styling and icon
-const getLogLevelConfig = (level: string) => {
-  switch (level) {
-    case 'INFO':
-      return {
-        icon: <FileText className="text-info" size={14} aria-hidden="true" />,
-        badgeClass: 'border-info/20 text-info',
-      };
-    case 'DEBUG':
-      return {
-        icon: <Info className="text-info" size={14} aria-hidden="true" />,
-        badgeClass: 'border-info/20 text-info',
-      };
-    case 'NOTICE':
-      return {
-        icon: <Info className="text-warning" size={14} aria-hidden="true" />,
-        badgeClass: 'border-warning/20 text-warning',
-      };
-    case 'WARNING':
-      return {
-        icon: (
-          <AlertTriangle
-            className="text-amber-500"
-            size={14}
-            aria-hidden="true"
-          />
-        ),
-        badgeClass: 'border-amber-100 text-amber-700',
-      };
-    case 'ERROR':
-      return {
-        icon: (
-          <CircleAlert className="text-error" size={14} aria-hidden="true" />
-        ),
-        badgeClass: 'border-error/20 text-error',
-      };
-    default:
-      return {
-        icon: (
-          <CircleAlert className="text-info" size={14} aria-hidden="true" />
-        ),
-        badgeClass: 'border-info/20 text-info',
-      };
-  }
-};
 
 export function getLogsTableColumns(
   {

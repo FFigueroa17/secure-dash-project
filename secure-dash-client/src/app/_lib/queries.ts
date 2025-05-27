@@ -53,7 +53,7 @@ export async function getFail2BanLogs(
         });
 
         if (!res.ok) {
-          console.error('Failed to fetch logs:', res.statusText);
+          console.error('Failed to fetch logs:', res.status);
           throw new Error('Failed to fetch logs');
         }
 
@@ -74,7 +74,7 @@ export async function getFail2BanLogs(
     },
     [JSON.stringify(input)], // Cache key based on the input
     {
-      revalidate: 1, // Revalidate cache every 6 minutes
+      revalidate: 60, // Revalidate cache every 1 minute
       tags: ['fail2ban-logs'], // Tag for cache management
     },
   )();
@@ -117,7 +117,7 @@ export async function getFail2BanLogsOverview(): Promise<Fail2BanOverview> {
     },
     [], // No cache key dependencies
     {
-      revalidate: 1, // Revalidate cache every 6 minutes
+      revalidate: 60, // Revalidate cache every 1 minute
       tags: ['fail2ban-logs-overview'], // Tag for cache management
     },
   )();

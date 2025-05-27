@@ -20,6 +20,7 @@ interface DataTableProps<TData> extends React.ComponentProps<'div'> {
   table: TanstackTable<TData>;
   columns: ColumnDef<TData>[];
   actionBar: React.ReactNode;
+  isPending?: boolean;
 }
 
 const DataTable = <TData,>({
@@ -27,6 +28,7 @@ const DataTable = <TData,>({
   columns,
   children,
   actionBar,
+  isPending,
 }: DataTableProps<TData>) => {
   return (
     <div className="space-y-4">
@@ -126,7 +128,7 @@ const DataTable = <TData,>({
 
       {/* Pagination */}
       <div className="flex flex-col gap-2.5">
-        <DataTablePagination table={table} />
+        <DataTablePagination table={table} isPending={isPending} />
         {table.getFilteredSelectedRowModel().rows.length > 0 && actionBar}
       </div>
     </div>

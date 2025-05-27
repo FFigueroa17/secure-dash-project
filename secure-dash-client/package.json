@@ -9,7 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepare": "husky",
-    "lint:fix": "next lint --fix --file",
+    "lint:fix": "next lint --fix",
     "format": "npx prettier --write '**/*.{js,jsx,ts,tsx,md,css,json}'",
     "lint-staged": "lint-staged"
   },
@@ -30,6 +30,7 @@
     "@radix-ui/react-label": "^2.1.6",
     "@radix-ui/react-popover": "^1.1.13",
     "@radix-ui/react-progress": "^1.1.6",
+    "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-separator": "^1.1.6",
     "@radix-ui/react-slot": "^1.2.2",
     "@radix-ui/react-tooltip": "^1.2.6",

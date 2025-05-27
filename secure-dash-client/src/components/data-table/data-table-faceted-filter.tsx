@@ -154,7 +154,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     >
                       <Check className="size-3 text-white" />
                     </div>
-                    {option.icon && <option.icon strokeWidth={1.5} />}
+                    {option.icon && option.icon}
                     <span className="truncate">{option.label}</span>
                     {option.count && (
                       <span className="ml-auto font-mono text-xs">
@@ -173,7 +173,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                     onSelect={() => onReset()}
                     className="justify-center text-center"
                   >
-                    Clear filters
+                    Limpiar filtros
                   </CommandItem>
                 </CommandGroup>
               </>
