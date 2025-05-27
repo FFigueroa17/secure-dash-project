@@ -52,8 +52,6 @@ export async function getFail2BanLogs(
           },
         });
 
-        console.log('Performed request to:', url);
-
         if (!res.ok) {
           console.error('Failed to fetch logs:', res.status);
           throw new Error('Failed to fetch logs');
