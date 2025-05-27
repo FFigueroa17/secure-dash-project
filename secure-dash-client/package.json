@@ -9,7 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "prepare": "husky",
-    "lint:fix": "next lint --fix --file",
+    "lint:fix": "next lint --fix",
     "format": "npx prettier --write '**/*.{js,jsx,ts,tsx,md,css,json}'",
     "lint-staged": "lint-staged"
   },
