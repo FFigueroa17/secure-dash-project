@@ -1,4 +1,12 @@
-import { AlertTriangle, BarChart3, Shield, TrendingDown } from 'lucide-react';
+import {
+  AlertTriangle,
+  BarChart3,
+  CircleAlert,
+  FileText,
+  Info,
+  Shield,
+  TrendingDown,
+} from 'lucide-react';
 
 export function getIcon(key: string) {
   switch (key) {
@@ -30,3 +38,56 @@ export function formatTitle(key: string) {
         .join(' ');
   }
 }
+
+// Helper function to get log level styling and icon
+export const getLogLevelConfig = (level: string) => {
+  switch (level) {
+    case 'INFO':
+      return {
+        icon: <FileText className="text-info" size={14} aria-hidden="true" />,
+        badgeClass: 'border-info/20 text-info',
+      };
+    case 'DEBUG':
+      return {
+        icon: <Info className="text-info" size={14} aria-hidden="true" />,
+        badgeClass: 'border-info/20 text-info',
+      };
+    case 'NOTICE':
+      return {
+        icon: <Info className="text-warning" size={14} aria-hidden="true" />,
+        badgeClass: 'border-warning/20 text-warning',
+      };
+    case 'WARNING':
+      return {
+        icon: (
+          <AlertTriangle
+            className="text-amber-500"
+            size={14}
+            aria-hidden="true"
+          />
+        ),
+        badgeClass: 'border-amber-100 text-amber-700',
+      };
+    case 'ERROR':
+      return {
+        icon: (
+          <CircleAlert className="text-error" size={14} aria-hidden="true" />
+        ),
+        badgeClass: 'border-error/20 text-error',
+      };
+    case 'UNKNOWN':
+      return {
+        icon: (
+          <CircleAlert className="text-gray-500" size={14} aria-hidden="true" />
+        ),
+        badgeClass: 'border-gray-500/20 text-gray-500',
+      };
+    default:
+      return {
+        icon: (
+          <CircleAlert className="text-info" size={14} aria-hidden="true" />
+        ),
+        badgeClass: 'border-info/20 text-info',
+      };
+  }
+};

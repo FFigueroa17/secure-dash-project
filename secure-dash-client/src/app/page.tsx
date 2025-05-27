@@ -30,9 +30,7 @@ export default async function Page(props: IndexPageProps) {
       {/* Page intro */}
       <div className="flex items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">
-            Resumen de Logs de Fail2Ban
-          </h1>
+          <h1 className="text-2xl font-semibold">Logs de Fail2Ban</h1>
           <p className="text-sm text-muted-foreground">
             Revisa los registros y estadísticas más recientes de Fail2Ban.
             Monitorea y gestiona los bloqueos de manera efectiva.

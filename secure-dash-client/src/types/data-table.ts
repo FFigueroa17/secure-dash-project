@@ -1,4 +1,5 @@
 import type { ColumnSort, Row } from '@tanstack/react-table';
+import { JSX } from 'react';
 
 import { FilterItemSchema } from '@/lib/parsers';
 
@@ -6,7 +7,7 @@ export interface Option {
   label: string;
   value: string;
   count?: number;
-  icon?: React.FC<React.SVGProps<SVGSVGElement>>;
+  icon?: JSX.Element;
 }
 
 export interface ExtendedColumnSort<TData> extends Omit<ColumnSort, 'id'> {
