@@ -190,15 +190,29 @@ jobs:
       - name: Search for existing CI pipeline issues
         id: search_issues
         run: |
-          # Search for open issues with specific labels for this branch and workflow
-          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open label:ci-pipeline label:${{ github.ref_name }} label:${{ github.workflow }}"
+          # Create a unique identifier for this branch/workflow combination
+          BRANCH_NAME="${{ github.ref_name }}"
+          WORKFLOW_NAME="${{ github.workflow }}"
 
-          echo "Searching for existing issues with query: $SEARCH_QUERY"
+          # Clean branch name for search (replace special chars with dashes)
+          CLEAN_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9]/-/g')
+
+          # Create unique identifier
+          UNIQUE_ID="[CI-${CLEAN_BRANCH}-${WORKFLOW_NAME}]"
+
+          echo "Searching for existing issues with identifier: $UNIQUE_ID"
+
+          # Search for open issues with our unique identifier in the title
+          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open \"$UNIQUE_ID\" in:title"
+
+          echo "Search query: $SEARCH_QUERY"
 
           RESPONSE=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/search/issues?q=$(echo "$SEARCH_QUERY" | sed 's/ /%20/g')")
+            "https://api.github.com/search/issues?q=$(echo "$SEARCH_QUERY" | sed 's/ /%20/g' | sed 's/"/%22/g')")
+
+          echo "API Response: $RESPONSE"
 
           ISSUE_COUNT=$(echo "$RESPONSE" | jq -r '.total_count // 0')
           echo "Found $ISSUE_COUNT existing issues"
@@ -209,9 +223,14 @@ jobs:
             echo "existing_issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
             echo "existing_issue_url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
             echo "has_existing_issue=true" >> "$GITHUB_OUTPUT"
+            echo "Found existing issue #$ISSUE_NUMBER: $ISSUE_URL"
           else
             echo "has_existing_issue=false" >> "$GITHUB_OUTPUT"
+            echo "No existing issues found, will create new one"
           fi
+
+          # Store the unique identifier for later use
+          echo "unique_id=$UNIQUE_ID" >> "$GITHUB_OUTPUT"
 
       - name: Render Issue template
         id: render_issue
@@ -311,15 +330,12 @@ jobs:
         uses: peter-evans/create-issue-from-file@v5
         with:
           title: |
-            CI Pipeline ${{ steps.compute_status.outputs.status }} - ${{ github.workflow }} on ${{ github.ref_name }}
+            ${{ steps.search_issues.outputs.unique_id }} CI Pipeline ${{ steps.compute_status.outputs.status }} - ${{ github.workflow }} on ${{ github.ref_name }}
           content-filepath: issue-body.md
           assignees: ${{ github.actor }}
           labels: |
             ci-pipeline,
-            secure-dash-client,
-            ${{ github.ref_name }},
-            ${{ github.event_name }},
-            ${{ github.workflow }}
+            secure-dash-client
 
   close-resolved-issues:
     name: Stage 6 - Close Resolved Issues
@@ -338,15 +354,27 @@ jobs:
     steps:
       - name: Search and close resolved CI pipeline issues
         run: |
-          # Search for open issues with specific labels for this branch and workflow
-          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open label:ci-pipeline label:${{ github.ref_name }} label:${{ github.workflow }}"
+          # Create the same unique identifier used in issue creation
+          BRANCH_NAME="${{ github.ref_name }}"
+          WORKFLOW_NAME="${{ github.workflow }}"
 
-          echo "Searching for resolved issues with query: $SEARCH_QUERY"
+          # Clean branch name for search (replace special chars with dashes)
+          CLEAN_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9]/-/g')
+
+          # Create unique identifier
+          UNIQUE_ID="[CI-${CLEAN_BRANCH}-${WORKFLOW_NAME}]"
+
+          echo "Searching for resolved issues with identifier: $UNIQUE_ID"
+
+          # Search for open issues with our unique identifier in the title
+          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open \"$UNIQUE_ID\" in:title"
+
+          echo "Search query: $SEARCH_QUERY"
 
           RESPONSE=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/search/issues?q=$(echo "$SEARCH_QUERY" | sed 's/ /%20/g')")
+            "https://api.github.com/search/issues?q=$(echo "$SEARCH_QUERY" | sed 's/ /%20/g' | sed 's/"/%22/g')")
 
           ISSUE_COUNT=$(echo "$RESPONSE" | jq -r '.total_count // 0')
           echo "Found $ISSUE_COUNT issues to potentially close"

@@ -67,7 +67,10 @@ beforeAll(() => {
   console.error = (...args: unknown[]) => {
     if (
       typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOM.render is no longer supported')
+      (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
+        args[0].includes(
+          'React does not recognize the `asChild` prop on a DOM element',
+        ))
     ) {
       return;
     }
