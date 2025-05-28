@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+
 import type { ComponentProps } from 'react';
 
 // Mock Next.js router
@@ -22,10 +23,11 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock Next.js image component
+import { createElement } from 'react';
+
 jest.mock('next/image', () => ({
   __esModule: true,
   default: (props: ComponentProps<'img'>) => {
-    const { createElement } = require('react');
     return createElement('img', props);
   },
 }));

@@ -11,10 +11,13 @@
     "prepare": "husky",
     "lint:fix": "next lint --fix",
     "format": "npx prettier --write '**/*.{js,jsx,ts,tsx,md,css,json}'",
+    "format:check": "npx prettier --check '**/*.{js,jsx,ts,tsx,md,css,json}'",
     "lint-staged": "lint-staged",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:coverage:open": "jest --coverage && open coverage/lcov-report/index.html",
+    "test:ci": "jest --coverage --watchAll=false --passWithNoTests",
     "test:integration": "playwright test",
     "test:integration:ui": "playwright test --ui",
     "test:integration:debug": "playwright test --debug"

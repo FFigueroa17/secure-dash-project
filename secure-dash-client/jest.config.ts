@@ -18,7 +18,12 @@ const config: Config = {
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
     '!src/**/*.stories.{js,jsx,ts,tsx}',
+    // Exclude specific files and directories
+    '!src/app/_*.{js,jsx,ts,tsx}',
+    '!src/**/types/**',
     '!src/**/index.{js,jsx,ts,tsx}',
+    // Exclude Providers
+    '!src/components/providers.tsx',
     // Exclude ShadCN UI components from coverage analysis
     '!src/components/ui/**/*.{js,jsx,ts,tsx}',
   ],
@@ -48,6 +53,8 @@ const config: Config = {
       statements: 60,
     },
   },
+  coverageProvider: 'v8',
+  coverageReporters: ['text', 'lcov', 'json-summary'],
   testMatch: [
     '<rootDir>/__tests__/**/*.{js,jsx,ts,tsx}',
     '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
