@@ -61,7 +61,7 @@ export function getLogsTableColumns(
         const timestamp = row.getValue('timestamp') as string;
         // Format date to show only the date and time
         const date = new Date(timestamp);
-        const formattedDate = date.toLocaleDateString('es-MX', {
+        const formattedDate = date.toLocaleString('es-MX', {
           year: 'numeric',
           month: 'short',
           day: 'numeric',
