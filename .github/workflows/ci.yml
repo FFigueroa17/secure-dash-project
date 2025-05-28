@@ -1,70 +1,136 @@
-name: CI
+name: CI Pipeline - Secure Dash Client
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
   push:
     branches: [main, develop, feat/**]
   pull_request:
-
-permissions:
-  contents: read
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+    branches: [main, develop]
 
 jobs:
-  build-test:
+  lint:
+    name: Stage 1 - Code Quality Check
     runs-on: ubuntu-latest
-
-    # 👇  all `run:` commands will execute inside the sub-folder
-    defaults:
-      run:
-        working-directory: secure-dash-client
-
     steps:
-      # 1️⃣  Checkout
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # 2️⃣  Node setup + npm cache
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
-          # tell the action where the lock-file actually is
-          cache-dependency-path: secure-dash-client/package-lock.json
+          node-version: 22
 
-      - name: Install deps
+      - name: Install dependencies
         run: npm ci --prefer-offline --legacy-peer-deps
         env:
-          HUSKY: 0 # ⇠ disables husky install + all hooks in CI
+          HUSKY: 0
 
-      # 3️⃣  Restore Next.js build cache (inside sub-folder)
-      - name: Restore .next/cache
-        uses: actions/cache@v4
+      - name: Run Linter
+        run: npm run lint
+
+      - name: Run Type-check
+        run: npm run typecheck
+
+      - name: Run Prettier
+        run: npx prettier --check "**/*.{js,jsx,ts,tsx,md,css,json}"
+
+  build:
+    name: Stage 2 - Container Build
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: npm run build
+
+  integration-tests:
+    name: Stage 3 - Integration & Flow Test
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Integration Tests
+        run: npm run test:integration
+
+  unit-tests:
+    name: Stage 4 - Unit Tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Unit Tests
+        run: npm run test
+
+  notify-github:
+    name: Stage 5 - Create GitHub Issue
+    needs: [lint, build, unit-tests, integration-tests]
+    runs-on: ubuntu-latest
+    if: |
+      needs.lint.result != 'success' ||
+      needs.build.result != 'success' ||
+      needs.integration-tests.result != 'success' ||
+      needs.unit-tests.result != 'success'
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compute pipeline status
+        id: compute_status
+        run: |
+          if [ "${{ needs.lint.result }}" == "success" ]       &&
+             [ "${{ needs.build.result }}" == "success" ]      &&
+             [ "${{ needs.integration-tests.result }}" == "success" ] &&
+             [ "${{ needs.unit-tests.result }}" == "success" ]; then
+            echo "status=✅ SUCCESS" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=❌ FAILED"  >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Render Issue template
+        id: render_issue
+        shell: bash
+        run: |
+          TEMPLATE='.github/ISSUE_TEMPLATES/ci-pipeline-template.md'
+          OUT='issue-body.md'
+
+          export STATUS='${{ steps.compute_status.outputs.status }}'
+          export WORKFLOW='${{ github.workflow }}'
+          export REF_NAME='${{ github.ref_name }}'
+          export EVENT_NAME='${{ github.event_name }}'
+          export SHA='${{ github.sha }}'
+          export SHORT_SHA='${{ github.sha }}' ; SHORT_SHA=${SHORT_SHA:0:7} ; export SHORT_SHA
+          export ACTOR='${{ github.actor }}'
+          export RUN_URL='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          export REPO='${{ github.repository }}'
+
+          export LINT_STATUS='${{ needs.lint.result }}'
+          export BUILD_STATUS='${{ needs.build.result }}'
+          export INTEGRATION_STATUS='${{ needs.integration-tests.result }}'
+          export UNIT_STATUS='${{ needs.unit-tests.result }}'
+
+          perl -pe 's/\{\{(\w+)\}\}/$ENV{$1}/ge' "$TEMPLATE" > "$OUT"
+
+      - name: Create Issue from file
+        uses: peter-evans/create-issue-from-file@v5
         with:
-          path: secure-dash-client/.next/cache
-          key: |
-            ${{ runner.os }}-next-${{ hashFiles('secure-dash-client/package-lock.json') }}-${{ hashFiles('secure-dash-client/**/*.[jt]sx?') }}
-          restore-keys: |
-            ${{ runner.os }}-next-${{ hashFiles('secure-dash-client/package-lock.json') }}-
-
-      # 4️⃣  Quality gates
-      - run: npm run lint # next lint
-        name: Lint
-      - run: npm run typecheck
-        name: Type-check
-      - run: npm run test --if-present
-        name: Unit tests
-      - run: npx prettier --check "**/*.{js,jsx,ts,tsx,md,css,json}"
-        name: Prettier check
-
-      # 5️⃣  Build
-      - run: npm run build
-        name: Build
-
-      # 6️⃣  Upload artefact for debugging (optional)
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: next-build
-          path: secure-dash-client/.next
+          title: |
+            CI Pipeline ${{ steps.compute_status.outputs.status }} - ${{ github.workflow }} on ${{ github.ref_name }}
+          content-filepath: issue-body.md
+          assignees: ${{ github.actor }}
+          labels: |
+            ci-pipeline,
+            secure-dash-client,
+            ${{ github.ref_name }},
+            ${{ github.event_name }}
