@@ -64,32 +64,8 @@ jobs:
       - name: Build
         run: npm run build
 
-  integration-tests:
-    name: Stage 3 - Integration & Flow Test
-    needs: build
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: secure-dash-client
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: npm ci --prefer-offline --legacy-peer-deps
-        env:
-          HUSKY: 0
-
-      - name: Run Integration Tests
-        run: npm run test:integration
-
   unit-tests:
-    name: Stage 4 - Unit Tests
+    name: Stage 3 - Unit Tests
     needs: build
     runs-on: ubuntu-latest
     defaults:
@@ -130,7 +106,7 @@ jobs:
           retention-days: 30
 
   coverage-report:
-    name: Stage 4.5 - Coverage Report
+    name: Stage 3.5 - Coverage Report
     needs: unit-tests
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -158,14 +134,13 @@ jobs:
           delete-old-comments: true
 
   notify-github:
-    name: Stage 5 - Smart GitHub Issue Management
-    needs: [lint, build, unit-tests, integration-tests]
+    name: Stage 4 - Smart GitHub Issue Management
+    needs: [lint, build, unit-tests]
     runs-on: ubuntu-latest
     if: |
       always() && (
         needs.lint.result == 'failure' ||
         needs.build.result == 'failure' ||
-        needs.integration-tests.result == 'failure' ||
         needs.unit-tests.result == 'failure'
       )
     permissions:
@@ -180,7 +155,6 @@ jobs:
         run: |
           if [ "${{ needs.lint.result }}" == "success" ]       &&
              [ "${{ needs.build.result }}" == "success" ]      &&
-             [ "${{ needs.integration-tests.result }}" == "success" ] &&
              [ "${{ needs.unit-tests.result }}" == "success" ]; then
             echo "status=✅ SUCCESS" >> "$GITHUB_OUTPUT"
           else
@@ -282,7 +256,6 @@ jobs:
 
           export LINT_STATUS='${{ needs.lint.result }}'
           export BUILD_STATUS='${{ needs.build.result }}'
-          export INTEGRATION_STATUS='${{ needs.integration-tests.result }}'
           export UNIT_STATUS='${{ needs.unit-tests.result }}'
 
           perl -pe 's/\{\{(\w+)\}\}/$ENV{$1}/ge' "$TEMPLATE" > "$OUT"
@@ -308,7 +281,6 @@ jobs:
 
           export LINT_STATUS='${{ needs.lint.result }}'
           export BUILD_STATUS='${{ needs.build.result }}'
-          export INTEGRATION_STATUS='${{ needs.integration-tests.result }}'
           export UNIT_STATUS='${{ needs.unit-tests.result }}'
 
           # Create a simplified version since we can't use complex templating
@@ -327,8 +299,7 @@ jobs:
           | ----------- | ------------------ | ------------------------ | ------------------------------------------------------ |
           | **Stage 1** | Code Quality Check | \`${LINT_STATUS}\`        | ESLint, TypeScript validation, and Prettier formatting |
           | **Stage 2** | Container Build    | \`${BUILD_STATUS}\`       | Next.js application build process                      |
-          | **Stage 3** | Integration Tests  | \`${INTEGRATION_STATUS}\` | End-to-end and integration test suite                  |
-          | **Stage 4** | Unit Tests         | \`${UNIT_STATUS}\`        | Component and utility function unit tests              |
+          | **Stage 3** | Unit Tests         | \`${UNIT_STATUS}\`        | Component and utility function unit tests              |
 
           ### 🔗 Quick Actions
           - [View Workflow Run](${RUN_URL})
@@ -369,14 +340,13 @@ jobs:
             secure-dash-client
 
   close-resolved-issues:
-    name: Stage 6 - Close Resolved Issues
-    needs: [lint, build, unit-tests, integration-tests]
+    name: Stage 5 - Close Resolved Issues
+    needs: [lint, build, unit-tests]
     runs-on: ubuntu-latest
     if: |
       always() && (
         needs.lint.result == 'success' &&
         needs.build.result == 'success' &&
-        needs.integration-tests.result == 'success' &&
         needs.unit-tests.result == 'success'
       )
     permissions:

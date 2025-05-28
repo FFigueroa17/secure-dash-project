@@ -8,12 +8,11 @@
 
 ### 📊 Current Pipeline Status
 
-| **Stage**   | **Job Name**       | **Status**               | **Description**                                        |
-| ----------- | ------------------ | ------------------------ | ------------------------------------------------------ |
-| **Stage 1** | Code Quality Check | `{{LINT_STATUS}}`        | ESLint, TypeScript validation, and Prettier formatting |
-| **Stage 2** | Container Build    | `{{BUILD_STATUS}}`       | Next.js application build process                      |
-| **Stage 3** | Integration Tests  | `{{INTEGRATION_STATUS}}` | End-to-end and integration test suite                  |
-| **Stage 4** | Unit Tests         | `{{UNIT_STATUS}}`        | Component and utility function unit tests              |
+| **Stage**   | **Job Name**       | **Status**         | **Description**                                        |
+| ----------- | ------------------ | ------------------ | ------------------------------------------------------ |
+| **Stage 1** | Code Quality Check | `{{LINT_STATUS}}`  | ESLint, TypeScript validation, and Prettier formatting |
+| **Stage 2** | Container Build    | `{{BUILD_STATUS}}` | Next.js application build process                      |
+| **Stage 3** | Unit Tests         | `{{UNIT_STATUS}}`  | Component and utility function unit tests              |
 
 ### 🔗 Quick Actions
 
