@@ -202,28 +202,56 @@ jobs:
 
           echo "Searching for existing issues with identifier: $UNIQUE_ID"
 
-          # Search for open issues with our unique identifier in the title
-          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open \"$UNIQUE_ID\" in:title"
+          # Properly encode the search query for URL
+          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open in:title ${UNIQUE_ID}"
+          ENCODED_QUERY=$(printf '%s' "$SEARCH_QUERY" | jq -sRr @uri)
 
           echo "Search query: $SEARCH_QUERY"
+          echo "Encoded query: $ENCODED_QUERY"
 
-          RESPONSE=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
+          # Make API request with better error handling
+          HTTP_STATUS=$(curl -w "%{http_code}" -s -o response.json \
+            -H "Authorization: Bearer ${{ github.token }}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/search/issues?q=$(echo "$SEARCH_QUERY" | sed 's/ /%20/g' | sed 's/"/%22/g')")
+            "https://api.github.com/search/issues?q=${ENCODED_QUERY}")
 
-          echo "API Response: $RESPONSE"
+          echo "HTTP Status: $HTTP_STATUS"
 
-          ISSUE_COUNT=$(echo "$RESPONSE" | jq -r '.total_count // 0')
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "API request failed with status $HTTP_STATUS"
+            cat response.json
+            echo "has_existing_issue=false" >> "$GITHUB_OUTPUT"
+            echo "unique_id=$UNIQUE_ID" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "API Response:"
+          cat response.json
+
+          # Parse response with error handling
+          if ! ISSUE_COUNT=$(jq -r '.total_count // 0' response.json 2>/dev/null); then
+            echo "Failed to parse JSON response, assuming no existing issues"
+            echo "has_existing_issue=false" >> "$GITHUB_OUTPUT"
+            echo "unique_id=$UNIQUE_ID" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           echo "Found $ISSUE_COUNT existing issues"
 
           if [ "$ISSUE_COUNT" -gt 0 ]; then
-            ISSUE_NUMBER=$(echo "$RESPONSE" | jq -r '.items[0].number')
-            ISSUE_URL=$(echo "$RESPONSE" | jq -r '.items[0].html_url')
-            echo "existing_issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
-            echo "existing_issue_url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
-            echo "has_existing_issue=true" >> "$GITHUB_OUTPUT"
-            echo "Found existing issue #$ISSUE_NUMBER: $ISSUE_URL"
+            ISSUE_NUMBER=$(jq -r '.items[0].number // empty' response.json)
+            ISSUE_URL=$(jq -r '.items[0].html_url // empty' response.json)
+            
+            if [ -n "$ISSUE_NUMBER" ] && [ "$ISSUE_NUMBER" != "null" ]; then
+              echo "existing_issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+              echo "existing_issue_url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
+              echo "has_existing_issue=true" >> "$GITHUB_OUTPUT"
+              echo "Found existing issue #$ISSUE_NUMBER: $ISSUE_URL"
+            else
+              echo "has_existing_issue=false" >> "$GITHUB_OUTPUT"
+              echo "No valid issue found in response"
+            fi
           else
             echo "has_existing_issue=false" >> "$GITHUB_OUTPUT"
             echo "No existing issues found, will create new one"
@@ -231,6 +259,9 @@ jobs:
 
           # Store the unique identifier for later use
           echo "unique_id=$UNIQUE_ID" >> "$GITHUB_OUTPUT"
+
+          # Clean up
+          rm -f response.json
 
       - name: Render Issue template
         id: render_issue
@@ -311,16 +342,16 @@ jobs:
       - name: Comment on existing issue
         if: steps.search_issues.outputs.has_existing_issue == 'true'
         run: |
+          # Read the comment body and escape it properly for JSON
+          COMMENT_BODY=$(cat comment-body.md | jq -Rs .)
+          
           curl -X POST \
             -H "Authorization: Bearer ${{ github.token }}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/json" \
             "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ steps.search_issues.outputs.existing_issue_number }}/comments" \
-            -d @- << 'EOF'
-          {
-            "body": "$(cat comment-body.md | jq -Rs .)"
-          }
-          EOF
+            -d "{\"body\": $COMMENT_BODY}"
 
           echo "✅ Added comment to existing issue #${{ steps.search_issues.outputs.existing_issue_number }}"
           echo "🔗 Issue URL: ${{ steps.search_issues.outputs.existing_issue_url }}"
@@ -366,45 +397,74 @@ jobs:
 
           echo "Searching for resolved issues with identifier: $UNIQUE_ID"
 
-          # Search for open issues with our unique identifier in the title
-          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open \"$UNIQUE_ID\" in:title"
+          # Properly encode the search query for URL
+          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open in:title ${UNIQUE_ID}"
+          ENCODED_QUERY=$(printf '%s' "$SEARCH_QUERY" | jq -sRr @uri)
 
           echo "Search query: $SEARCH_QUERY"
+          echo "Encoded query: $ENCODED_QUERY"
 
-          RESPONSE=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
+          # Make API request with better error handling
+          HTTP_STATUS=$(curl -w "%{http_code}" -s -o response.json \
+            -H "Authorization: Bearer ${{ github.token }}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/search/issues?q=$(echo "$SEARCH_QUERY" | sed 's/ /%20/g' | sed 's/"/%22/g')")
+            "https://api.github.com/search/issues?q=${ENCODED_QUERY}")
 
-          ISSUE_COUNT=$(echo "$RESPONSE" | jq -r '.total_count // 0')
+          echo "HTTP Status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "API request failed with status $HTTP_STATUS"
+            cat response.json
+            exit 0
+          fi
+
+          # Parse response with error handling
+          if ! ISSUE_COUNT=$(jq -r '.total_count // 0' response.json 2>/dev/null); then
+            echo "Failed to parse JSON response"
+            rm -f response.json
+            exit 0
+          fi
+
           echo "Found $ISSUE_COUNT issues to potentially close"
 
           if [ "$ISSUE_COUNT" -gt 0 ]; then
-            echo "$RESPONSE" | jq -r '.items[].number' | while read -r ISSUE_NUMBER; do
-              echo "Closing issue #$ISSUE_NUMBER as pipeline is now successful"
-              
-              # Add success comment
-              curl -X POST \
-                -H "Authorization: Bearer ${{ github.token }}" \
-                -H "Accept: application/vnd.github+json" \
-                -H "X-GitHub-Api-Version: 2022-11-28" \
-                "${{ github.api_url }}/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments" \
-                -d @- << 'EOF'
-              {
-                "body": "## ✅ Pipeline Resolved!\n\n**Status:** All stages now passing  \n**Commit:** [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})  \n**Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})  \n**Resolved by:** @${{ github.actor }}  \n**Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')\n\nClosing this issue as the CI pipeline is now successful. 🎉\n\n---\n_This comment was automatically generated by the CI/CD pipeline._"
-              }
-          EOF
-              
-              # Close the issue
-              curl -X PATCH \
-                -H "Authorization: Bearer ${{ github.token }}" \
-                -H "Accept: application/vnd.github+json" \
-                -H "X-GitHub-Api-Version: 2022-11-28" \
-                "${{ github.api_url }}/repos/${{ github.repository }}/issues/$ISSUE_NUMBER" \
-                -d '{"state": "closed", "state_reason": "completed"}'
-              
-              echo "✅ Closed issue #$ISSUE_NUMBER"
+            jq -r '.items[]?.number // empty' response.json | while read -r ISSUE_NUMBER; do
+              if [ -n "$ISSUE_NUMBER" ] && [ "$ISSUE_NUMBER" != "null" ]; then
+                echo "Closing issue #$ISSUE_NUMBER as pipeline is now successful"
+                
+                # Create success message
+                SUCCESS_MESSAGE=$(cat << 'EOF'
+{
+  "body": "## ✅ Pipeline Resolved!\n\n**Status:** All stages now passing  \n**Commit:** [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})  \n**Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})  \n**Resolved by:** @${{ github.actor }}  \n**Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')\n\nClosing this issue as the CI pipeline is now successful. 🎉\n\n---\n_This comment was automatically generated by the CI/CD pipeline._"
+}
+EOF
+)
+                
+                # Add success comment
+                curl -X POST \
+                  -H "Authorization: Bearer ${{ github.token }}" \
+                  -H "Accept: application/vnd.github+json" \
+                  -H "X-GitHub-Api-Version: 2022-11-28" \
+                  -H "Content-Type: application/json" \
+                  "${{ github.api_url }}/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments" \
+                  -d "$SUCCESS_MESSAGE"
+                
+                # Close the issue
+                curl -X PATCH \
+                  -H "Authorization: Bearer ${{ github.token }}" \
+                  -H "Accept: application/vnd.github+json" \
+                  -H "X-GitHub-Api-Version: 2022-11-28" \
+                  -H "Content-Type: application/json" \
+                  "${{ github.api_url }}/repos/${{ github.repository }}/issues/$ISSUE_NUMBER" \
+                  -d '{"state": "closed", "state_reason": "completed"}'
+                
+                echo "✅ Closed issue #$ISSUE_NUMBER"
+              fi
             done
           else
             echo "No issues found to close"
           fi
+
+          # Clean up
+          rm -f response.json

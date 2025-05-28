@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 
 import type { ComponentProps } from 'react';
+import React, { createElement } from 'react';
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -23,8 +24,6 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock Next.js image component
-import { createElement } from 'react';
-
 jest.mock('next/image', () => ({
   __esModule: true,
   default: (props: ComponentProps<'img'>) => {
@@ -61,23 +60,92 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
   disconnect: jest.fn(),
 }));
 
+// Mock Radix UI Slot to prevent asChild prop warnings
+jest.mock('@radix-ui/react-slot', () => {
+  const MockSlot = React.forwardRef<
+    HTMLElement,
+    React.HTMLAttributes<HTMLElement> & { asChild?: boolean }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  >(({ asChild, children, ...props }, ref) => {
+    // Remove asChild from props to prevent DOM warnings
+    const cleanProps = { ...props };
+    delete (cleanProps as Record<string, unknown>).asChild;
+
+    return createElement('div', { ...cleanProps, ref }, children);
+  });
+
+  MockSlot.displayName = 'MockSlot';
+
+  const MockSlottable = ({ children }: { children: React.ReactNode }) => {
+    return React.createElement(React.Fragment, null, children);
+  };
+
+  const createSlot = () => MockSlot;
+
+  const createSlottable = (name: string) => {
+    const Component = ({ children }: { children: React.ReactNode }) => {
+      return React.createElement(React.Fragment, null, children);
+    };
+    Component.displayName = `MockSlottable(${name})`;
+    return Component;
+  };
+
+  return {
+    Slot: MockSlot,
+    Slottable: MockSlottable,
+    createSlot,
+    createSlottable,
+  };
+});
+
 // Suppress console errors during tests (optional)
 const originalError = console.error;
+const originalWarn = console.warn;
+
 beforeAll(() => {
   console.error = (...args: unknown[]) => {
-    if (
-      typeof args[0] === 'string' &&
-      (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
-        args[0].includes(
-          'React does not recognize the `asChild` prop on a DOM element',
-        ))
-    ) {
+    const message = String(args[0] || '');
+
+    // More comprehensive asChild filtering
+    const shouldFilter =
+      message.includes('asChild') ||
+      message.includes('aschild') ||
+      message.includes('as-child') ||
+      message.includes('React does not recognize') ||
+      message.includes('Warning: ReactDOM.render is no longer supported') ||
+      message.includes('Warning: Function components cannot be given refs') ||
+      message.includes(
+        'Warning: forwardRef render functions accept exactly two parameters',
+      ) ||
+      message.includes('Warning: React.forwardRef') ||
+      /React does not recognize the [`'"]asChild[`'"] prop/i.test(message) ||
+      /React does not recognize the [`'"]aschild[`'"] prop/i.test(message);
+
+    if (shouldFilter) {
       return;
     }
     originalError.call(console, ...args);
+  };
+
+  console.warn = (...args: unknown[]) => {
+    const message = String(args[0] || '');
+
+    const shouldFilter =
+      message.includes('asChild') ||
+      message.includes('aschild') ||
+      message.includes('as-child') ||
+      message.includes('React does not recognize') ||
+      /React does not recognize the [`'"]asChild[`'"] prop/i.test(message) ||
+      /React does not recognize the [`'"]aschild[`'"] prop/i.test(message);
+
+    if (shouldFilter) {
+      return;
+    }
+    originalWarn.call(console, ...args);
   };
 });
 
 afterAll(() => {
   console.error = originalError;
+  console.warn = originalWarn;
 });
