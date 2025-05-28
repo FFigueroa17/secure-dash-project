@@ -221,7 +221,7 @@ describe('format utilities', () => {
       expect(result).toEqual(['value1', 'value2', 123]);
     });
 
-    it('should filter out invalid items from array', () => {
+    it('should replace invalid items in array with undefined', () => {
       const input = ['valid', 123, null, undefined, {}, true];
       const result = parseColumnFilterValue(input);
       expect(result).toEqual([
