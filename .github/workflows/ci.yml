@@ -116,11 +116,11 @@ jobs:
     name: Stage 5 - Create GitHub Issue
     needs: [lint, build, unit-tests, integration-tests]
     runs-on: ubuntu-latest
-    if: |
-      needs.lint.result != 'success' ||
-      needs.build.result != 'success' ||
-      needs.integration-tests.result != 'success' ||
-      needs.unit-tests.result != 'success'
+    if: always() &&
+      needs.lint.result == 'failure' ||
+      needs.build.result == 'failure' ||
+      needs.integration-tests.result == 'failure' ||
+      needs.unit-tests.result == 'failure'
     permissions:
       issues: write
       contents: read
