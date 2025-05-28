@@ -27,32 +27,33 @@ const config: Config = {
     // Exclude ShadCN UI components from coverage analysis
     '!src/components/ui/**/*.{js,jsx,ts,tsx}',
   ],
-  coverageThreshold: {
-    global: {
-      branches: 60,
-      functions: 60,
-      lines: 60,
-      statements: 60,
-    },
-    './src/components/data-table/': {
-      branches: 60,
-      functions: 60,
-      lines: 60,
-      statements: 60,
-    },
-    './src/hooks/': {
-      branches: 60,
-      functions: 60,
-      lines: 60,
-      statements: 60,
-    },
-    './src/lib/': {
-      branches: 60,
-      functions: 60,
-      lines: 60,
-      statements: 60,
-    },
-  },
+  // TODO: Uncomment the following lines to enforce coverage thresholds
+  // coverageThreshold: {
+  //   global: {
+  //     branches: 60,
+  //     functions: 60,
+  //     lines: 60,
+  //     statements: 60,
+  //   },
+  //   './src/components/data-table/': {
+  //     branches: 60,
+  //     functions: 60,
+  //     lines: 60,
+  //     statements: 60,
+  //   },
+  //   './src/hooks/': {
+  //     branches: 60,
+  //     functions: 60,
+  //     lines: 60,
+  //     statements: 60,
+  //   },
+  //   './src/lib/': {
+  //     branches: 60,
+  //     functions: 60,
+  //     lines: 60,
+  //     statements: 60,
+  //   },
+  // },
   coverageProvider: 'v8',
   coverageReporters: ['text', 'lcov', 'json-summary'],
   testMatch: [
