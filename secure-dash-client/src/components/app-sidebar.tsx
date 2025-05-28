@@ -38,7 +38,7 @@ const data = {
         },
         {
           title: 'IPs',
-          url: '#',
+          url: '/#',
           icon: ChartLine,
         },
         {
@@ -111,7 +111,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="pb-6">
         <hr className="border-t border-border mx-2 -mt-px" />
         <SidebarMenu>
           <SidebarMenuItem>

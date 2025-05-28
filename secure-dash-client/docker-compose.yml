@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # Main application service
+  secure-dash-client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+    volumes:
+      # Mount environment file if it exists
+      - ./.env.local:/app/.env.local:ro
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:3000/',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - secure-dash-network
+
+  # Development service (uncomment for development)
+  # secure-dash-client-dev:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.dev
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NODE_ENV=development
+  #   volumes:
+  #     - .:/app
+  #     - /app/node_modules
+  #     - /app/.next
+  #   command: npm run dev
+  #   networks:
+  #     - secure-dash-network
+
+networks:
+  secure-dash-network:
+    driver: bridge
