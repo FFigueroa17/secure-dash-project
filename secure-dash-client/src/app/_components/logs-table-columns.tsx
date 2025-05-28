@@ -13,7 +13,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { formatDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Fail2BanLog } from '@/schemas/log';
 import type { DataTableRowAction } from '@/types/data-table';
@@ -60,7 +59,9 @@ export function getLogsTableColumns(
       enableColumnFilter: true,
       cell: ({ row }) => {
         const timestamp = row.getValue('timestamp') as string;
-        const formattedDate = formatDate(timestamp, {
+        // Format date to show only the date and time
+        const date = new Date(timestamp);
+        const formattedDate = date.toLocaleString('es-MX', {
           year: 'numeric',
           month: 'short',
           day: 'numeric',
