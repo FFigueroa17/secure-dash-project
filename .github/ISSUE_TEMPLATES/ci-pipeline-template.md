@@ -1,11 +1,3 @@
----
-name: CI Pipeline Report
-about: Automated report for CI pipeline execution
-title: "CI Pipeline Report - {{WORKFLOW}} on {{REF_NAME}}"
-labels: ["ci-pipeline", "automated-report"]
-assignees: []
----
-
 # CI Pipeline Execution Report
 
 ## Overview
