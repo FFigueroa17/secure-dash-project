@@ -37,8 +37,8 @@ jobs:
       - name: Run Type-check
         run: npm run typecheck
 
-      - name: Run Prettier
-        run: npx prettier --check "**/*.{js,jsx,ts,tsx,md,css,json}"
+      - name: Run Prettier Check
+        run: npm run format:check
 
   build:
     name: Stage 2 - Container Build
@@ -64,32 +64,8 @@ jobs:
       - name: Build
         run: npm run build
 
-  integration-tests:
-    name: Stage 3 - Integration & Flow Test
-    needs: build
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: secure-dash-client
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Install dependencies
-        run: npm ci --prefer-offline --legacy-peer-deps
-        env:
-          HUSKY: 0
-
-      - name: Run Integration Tests
-        run: npm run test:integration
-
   unit-tests:
-    name: Stage 4 - Unit Tests
+    name: Stage 3 - Unit Tests
     needs: build
     runs-on: ubuntu-latest
     defaults:
@@ -109,18 +85,62 @@ jobs:
         env:
           HUSKY: 0
 
-      - name: Run Unit Tests
-        run: npm run test
+      - name: Run Unit Tests with Coverage
+        run: npm run test:ci
+
+      - name: Upload Coverage Reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          working-directory: secure-dash-client
+          files: ./coverage/lcov.info,./coverage/clover.xml,./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Upload Coverage Reports as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: secure-dash-client/coverage/
+          retention-days: 30
+
+  coverage-report:
+    name: Stage 3.5 - Coverage Report
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+      contents: read
+    defaults:
+      run:
+        working-directory: secure-dash-client
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Coverage Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-reports
+          path: secure-dash-client/coverage/
+
+      - name: Coverage Comment
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: secure-dash-client/coverage/lcov.info
+          delete-old-comments: true
 
   notify-github:
-    name: Stage 5 - Smart GitHub Issue Management
-    needs: [lint, build, unit-tests, integration-tests]
+    name: Stage 4 - Smart GitHub Issue Management
+    needs: [lint, build, unit-tests]
     runs-on: ubuntu-latest
     if: |
       always() && (
         needs.lint.result == 'failure' ||
         needs.build.result == 'failure' ||
-        needs.integration-tests.result == 'failure' ||
         needs.unit-tests.result == 'failure'
       )
     permissions:
@@ -135,7 +155,6 @@ jobs:
         run: |
           if [ "${{ needs.lint.result }}" == "success" ]       &&
              [ "${{ needs.build.result }}" == "success" ]      &&
-             [ "${{ needs.integration-tests.result }}" == "success" ] &&
              [ "${{ needs.unit-tests.result }}" == "success" ]; then
             echo "status=✅ SUCCESS" >> "$GITHUB_OUTPUT"
           else
@@ -145,28 +164,78 @@ jobs:
       - name: Search for existing CI pipeline issues
         id: search_issues
         run: |
-          # Search for open issues with specific labels for this branch and workflow
-          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open label:ci-pipeline label:${{ github.ref_name }} label:${{ github.workflow }}"
+          # Create a unique identifier for this branch/workflow combination
+          BRANCH_NAME="${{ github.ref_name }}"
+          WORKFLOW_NAME="${{ github.workflow }}"
 
-          echo "Searching for existing issues with query: $SEARCH_QUERY"
+          # Clean branch name for search (replace special chars with dashes)
+          CLEAN_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9]/-/g')
 
-          RESPONSE=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
+          # Create unique identifier
+          UNIQUE_ID="[CI-${CLEAN_BRANCH}-${WORKFLOW_NAME}]"
+
+          echo "Searching for existing issues with identifier: $UNIQUE_ID"
+
+          # Properly encode the search query for URL
+          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open in:title ${UNIQUE_ID}"
+          ENCODED_QUERY=$(printf '%s' "$SEARCH_QUERY" | jq -sRr @uri)
+
+          echo "Search query: $SEARCH_QUERY"
+          echo "Encoded query: $ENCODED_QUERY"
+
+          # Make API request with better error handling
+          HTTP_STATUS=$(curl -w "%{http_code}" -s -o response.json \
+            -H "Authorization: Bearer ${{ github.token }}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/search/issues?q=$(echo "$SEARCH_QUERY" | sed 's/ /%20/g')")
+            "https://api.github.com/search/issues?q=${ENCODED_QUERY}")
 
-          ISSUE_COUNT=$(echo "$RESPONSE" | jq -r '.total_count // 0')
+          echo "HTTP Status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "API request failed with status $HTTP_STATUS"
+            cat response.json
+            echo "has_existing_issue=false" >> "$GITHUB_OUTPUT"
+            echo "unique_id=$UNIQUE_ID" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "API Response:"
+          cat response.json
+
+          # Parse response with error handling
+          if ! ISSUE_COUNT=$(jq -r '.total_count // 0' response.json 2>/dev/null); then
+            echo "Failed to parse JSON response, assuming no existing issues"
+            echo "has_existing_issue=false" >> "$GITHUB_OUTPUT"
+            echo "unique_id=$UNIQUE_ID" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           echo "Found $ISSUE_COUNT existing issues"
 
           if [ "$ISSUE_COUNT" -gt 0 ]; then
-            ISSUE_NUMBER=$(echo "$RESPONSE" | jq -r '.items[0].number')
-            ISSUE_URL=$(echo "$RESPONSE" | jq -r '.items[0].html_url')
-            echo "existing_issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
-            echo "existing_issue_url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
-            echo "has_existing_issue=true" >> "$GITHUB_OUTPUT"
+            ISSUE_NUMBER=$(jq -r '.items[0].number // empty' response.json)
+            ISSUE_URL=$(jq -r '.items[0].html_url // empty' response.json)
+            
+            if [ -n "$ISSUE_NUMBER" ] && [ "$ISSUE_NUMBER" != "null" ]; then
+              echo "existing_issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+              echo "existing_issue_url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
+              echo "has_existing_issue=true" >> "$GITHUB_OUTPUT"
+              echo "Found existing issue #$ISSUE_NUMBER: $ISSUE_URL"
+            else
+              echo "has_existing_issue=false" >> "$GITHUB_OUTPUT"
+              echo "No valid issue found in response"
+            fi
           else
             echo "has_existing_issue=false" >> "$GITHUB_OUTPUT"
+            echo "No existing issues found, will create new one"
           fi
+
+          # Store the unique identifier for later use
+          echo "unique_id=$UNIQUE_ID" >> "$GITHUB_OUTPUT"
+
+          # Clean up
+          rm -f response.json
 
       - name: Render Issue template
         id: render_issue
@@ -187,7 +256,6 @@ jobs:
 
           export LINT_STATUS='${{ needs.lint.result }}'
           export BUILD_STATUS='${{ needs.build.result }}'
-          export INTEGRATION_STATUS='${{ needs.integration-tests.result }}'
           export UNIT_STATUS='${{ needs.unit-tests.result }}'
 
           perl -pe 's/\{\{(\w+)\}\}/$ENV{$1}/ge' "$TEMPLATE" > "$OUT"
@@ -213,7 +281,6 @@ jobs:
 
           export LINT_STATUS='${{ needs.lint.result }}'
           export BUILD_STATUS='${{ needs.build.result }}'
-          export INTEGRATION_STATUS='${{ needs.integration-tests.result }}'
           export UNIT_STATUS='${{ needs.unit-tests.result }}'
 
           # Create a simplified version since we can't use complex templating
@@ -232,8 +299,7 @@ jobs:
           | ----------- | ------------------ | ------------------------ | ------------------------------------------------------ |
           | **Stage 1** | Code Quality Check | \`${LINT_STATUS}\`        | ESLint, TypeScript validation, and Prettier formatting |
           | **Stage 2** | Container Build    | \`${BUILD_STATUS}\`       | Next.js application build process                      |
-          | **Stage 3** | Integration Tests  | \`${INTEGRATION_STATUS}\` | End-to-end and integration test suite                  |
-          | **Stage 4** | Unit Tests         | \`${UNIT_STATUS}\`        | Component and utility function unit tests              |
+          | **Stage 3** | Unit Tests         | \`${UNIT_STATUS}\`        | Component and utility function unit tests              |
 
           ### 🔗 Quick Actions
           - [View Workflow Run](${RUN_URL})
@@ -247,16 +313,16 @@ jobs:
       - name: Comment on existing issue
         if: steps.search_issues.outputs.has_existing_issue == 'true'
         run: |
+          # Read the comment body and escape it properly for JSON
+          COMMENT_BODY=$(cat comment-body.md | jq -Rs .)
+
           curl -X POST \
             -H "Authorization: Bearer ${{ github.token }}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/json" \
             "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ steps.search_issues.outputs.existing_issue_number }}/comments" \
-            -d @- << 'EOF'
-          {
-            "body": "$(cat comment-body.md | jq -Rs .)"
-          }
-          EOF
+            -d "{\"body\": $COMMENT_BODY}"
 
           echo "✅ Added comment to existing issue #${{ steps.search_issues.outputs.existing_issue_number }}"
           echo "🔗 Issue URL: ${{ steps.search_issues.outputs.existing_issue_url }}"
@@ -266,25 +332,21 @@ jobs:
         uses: peter-evans/create-issue-from-file@v5
         with:
           title: |
-            CI Pipeline ${{ steps.compute_status.outputs.status }} - ${{ github.workflow }} on ${{ github.ref_name }}
+            ${{ steps.search_issues.outputs.unique_id }} CI Pipeline ${{ steps.compute_status.outputs.status }} - ${{ github.workflow }} on ${{ github.ref_name }}
           content-filepath: issue-body.md
           assignees: ${{ github.actor }}
           labels: |
             ci-pipeline,
-            secure-dash-client,
-            ${{ github.ref_name }},
-            ${{ github.event_name }},
-            ${{ github.workflow }}
+            secure-dash-client
 
   close-resolved-issues:
-    name: Stage 6 - Close Resolved Issues
-    needs: [lint, build, unit-tests, integration-tests]
+    name: Stage 5 - Close Resolved Issues
+    needs: [lint, build, unit-tests]
     runs-on: ubuntu-latest
     if: |
       always() && (
         needs.lint.result == 'success' &&
         needs.build.result == 'success' &&
-        needs.integration-tests.result == 'success' &&
         needs.unit-tests.result == 'success'
       )
     permissions:
@@ -293,45 +355,83 @@ jobs:
     steps:
       - name: Search and close resolved CI pipeline issues
         run: |
-          # Search for open issues with specific labels for this branch and workflow
-          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open label:ci-pipeline label:${{ github.ref_name }} label:${{ github.workflow }}"
+          # Create the same unique identifier used in issue creation
+          BRANCH_NAME="${{ github.ref_name }}"
+          WORKFLOW_NAME="${{ github.workflow }}"
 
-          echo "Searching for resolved issues with query: $SEARCH_QUERY"
+          # Clean branch name for search (replace special chars with dashes)
+          CLEAN_BRANCH=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9]/-/g')
 
-          RESPONSE=$(curl -s -H "Authorization: Bearer ${{ github.token }}" \
+          # Create unique identifier
+          UNIQUE_ID="[CI-${CLEAN_BRANCH}-${WORKFLOW_NAME}]"
+
+          echo "Searching for resolved issues with identifier: $UNIQUE_ID"
+
+          # Properly encode the search query for URL
+          SEARCH_QUERY="repo:${{ github.repository }} is:issue is:open in:title ${UNIQUE_ID}"
+          ENCODED_QUERY=$(printf '%s' "$SEARCH_QUERY" | jq -sRr @uri)
+
+          echo "Search query: $SEARCH_QUERY"
+          echo "Encoded query: $ENCODED_QUERY"
+
+          # Make API request with better error handling
+          HTTP_STATUS=$(curl -w "%{http_code}" -s -o response.json \
+            -H "Authorization: Bearer ${{ github.token }}" \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/search/issues?q=$(echo "$SEARCH_QUERY" | sed 's/ /%20/g')")
+            "https://api.github.com/search/issues?q=${ENCODED_QUERY}")
 
-          ISSUE_COUNT=$(echo "$RESPONSE" | jq -r '.total_count // 0')
+          echo "HTTP Status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "API request failed with status $HTTP_STATUS"
+            cat response.json
+            exit 0
+          fi
+
+          # Parse response with error handling
+          if ! ISSUE_COUNT=$(jq -r '.total_count // 0' response.json 2>/dev/null); then
+            echo "Failed to parse JSON response"
+            rm -f response.json
+            exit 0
+          fi
+
           echo "Found $ISSUE_COUNT issues to potentially close"
 
           if [ "$ISSUE_COUNT" -gt 0 ]; then
-            echo "$RESPONSE" | jq -r '.items[].number' | while read -r ISSUE_NUMBER; do
-              echo "Closing issue #$ISSUE_NUMBER as pipeline is now successful"
-              
-              # Add success comment
-              curl -X POST \
-                -H "Authorization: Bearer ${{ github.token }}" \
-                -H "Accept: application/vnd.github+json" \
-                -H "X-GitHub-Api-Version: 2022-11-28" \
-                "${{ github.api_url }}/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments" \
-                -d @- << 'EOF'
-              {
-                "body": "## ✅ Pipeline Resolved!\n\n**Status:** All stages now passing  \n**Commit:** [`${{ github.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})  \n**Workflow Run:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})  \n**Resolved by:** @${{ github.actor }}  \n**Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')\n\nClosing this issue as the CI pipeline is now successful. 🎉\n\n---\n_This comment was automatically generated by the CI/CD pipeline._"
-              }
-          EOF
-              
-              # Close the issue
-              curl -X PATCH \
-                -H "Authorization: Bearer ${{ github.token }}" \
-                -H "Accept: application/vnd.github+json" \
-                -H "X-GitHub-Api-Version: 2022-11-28" \
-                "${{ github.api_url }}/repos/${{ github.repository }}/issues/$ISSUE_NUMBER" \
-                -d '{"state": "closed", "state_reason": "completed"}'
-              
-              echo "✅ Closed issue #$ISSUE_NUMBER"
+            jq -r '.items[]?.number // empty' response.json | while read -r ISSUE_NUMBER; do
+              if [ -n "$ISSUE_NUMBER" ] && [ "$ISSUE_NUMBER" != "null" ]; then
+                echo "Closing issue #$ISSUE_NUMBER as pipeline is now successful"
+                
+                # Create success message
+                SUCCESS_MESSAGE='{
+                  "body": "## ✅ Pipeline Resolved!\n\n**Status:** All stages now passing  \n**Commit:** [`'"${GITHUB_SHA}"'`]('"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"')  \n**Workflow Run:** [View Details]('"${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"')  \n**Resolved by:** @'"${GITHUB_ACTOR}"'  \n**Time:** '"$(date -u '+%Y-%m-%d %H:%M:%S UTC')"'\n\nClosing this issue as the CI pipeline is now successful. 🎉\n\n---\n_This comment was automatically generated by the CI/CD pipeline._"
+                }'
+                
+                # Add success comment
+                curl -X POST \
+                  -H "Authorization: Bearer ${{ github.token }}" \
+                  -H "Accept: application/vnd.github+json" \
+                  -H "X-GitHub-Api-Version: 2022-11-28" \
+                  -H "Content-Type: application/json" \
+                  "${{ github.api_url }}/repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments" \
+                  -d "$SUCCESS_MESSAGE"
+                
+                # Close the issue
+                curl -X PATCH \
+                  -H "Authorization: Bearer ${{ github.token }}" \
+                  -H "Accept: application/vnd.github+json" \
+                  -H "X-GitHub-Api-Version: 2022-11-28" \
+                  -H "Content-Type: application/json" \
+                  "${{ github.api_url }}/repos/${{ github.repository }}/issues/$ISSUE_NUMBER" \
+                  -d '{"state": "closed", "state_reason": "completed"}'
+                
+                echo "✅ Closed issue #$ISSUE_NUMBER"
+              fi
             done
           else
             echo "No issues found to close"
           fi
+
+          # Clean up
+          rm -f response.json

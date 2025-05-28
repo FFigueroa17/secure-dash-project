@@ -26,6 +26,8 @@ const AnimatedLoading = ({
             className,
           )}
           style={{ transformOrigin: 'left' }}
+          role="status"
+          aria-label="Loading..."
         >
           {/* Shimmer effect */}
           <motion.div

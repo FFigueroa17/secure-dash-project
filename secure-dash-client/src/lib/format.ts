@@ -17,15 +17,29 @@ export function formatDate(
   date: Date | string | number | undefined,
   opts: Intl.DateTimeFormatOptions = {},
 ) {
-  if (!date) return '';
+  if (!date && date !== 0) return '';
 
   try {
+    let dateObj: Date;
+
+    if (date instanceof Date) {
+      dateObj = date;
+    } else {
+      // For strings and numbers, convert to number first then to Date
+      const timestamp = typeof date === 'string' ? Number(date) : date;
+      if (Number.isNaN(timestamp)) return '';
+      dateObj = new Date(timestamp);
+    }
+
+    // Check if the resulting date is valid
+    if (Number.isNaN(dateObj.getTime())) return '';
+
     return new Intl.DateTimeFormat('es-MX', {
       month: opts.month ?? 'long',
       day: opts.day ?? 'numeric',
       year: opts.year ?? 'numeric',
       ...opts,
-    }).format(new Date(date));
+    }).format(dateObj);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_err) {
     // Return empty string if date parsing or formatting fails
@@ -39,7 +53,10 @@ export function formatDate(
  * @returns True if the value is a DateRange object, false otherwise
  */
 export function getIsDateRange(value: DateSelection): value is DateRange {
-  return value && typeof value === 'object' && !Array.isArray(value);
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -53,11 +70,14 @@ export function getIsDateRange(value: DateSelection): value is DateRange {
 export function parseAsDate(
   timestamp: number | string | undefined,
 ): Date | undefined {
-  if (!timestamp) return undefined;
+  if (timestamp === undefined || timestamp === null) return undefined;
+  if (timestamp === '') return undefined;
 
   // Convert string timestamps to numbers
   const numericTimestamp =
     typeof timestamp === 'string' ? Number(timestamp) : timestamp;
+
+  if (Number.isNaN(numericTimestamp)) return undefined;
 
   const date = new Date(numericTimestamp);
   return !Number.isNaN(date.getTime()) ? date : undefined;
