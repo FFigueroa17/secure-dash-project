@@ -84,7 +84,14 @@ describe('DataTable', () => {
       render(<DataTableWrapper data={[]} />);
 
       expect(screen.getByRole('table')).toBeInTheDocument();
-      expect(screen.getByText('No results.')).toBeInTheDocument();
+      expect(
+        screen.getByText('No hay registros para mostrar.'),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'Intenta con diferentes filtros o busca en otra sección.',
+        ),
+      ).toBeInTheDocument();
     });
 
     it('displays pagination component', () => {
