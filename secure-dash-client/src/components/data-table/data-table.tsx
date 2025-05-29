@@ -4,8 +4,10 @@ import {
   type Table as TanstackTable,
 } from '@tanstack/react-table';
 import { ArrowDown, ArrowUp } from 'lucide-react';
+import Image from 'next/image';
 
 import DataTablePagination from '@/components/data-table/data-table-pagination';
+import { BlurFade } from '@/components/ui/blur-fade';
 import {
   Table,
   TableBody,
@@ -117,8 +119,24 @@ const DataTable = <TData,>({
             ))
           ) : (
             <TableRow className="hover:bg-transparent [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg">
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+              <TableCell colSpan={columns.length} className="py-5 h-full">
+                <BlurFade>
+                  <Image
+                    src="/empty-table.png"
+                    alt="Tabla vacía"
+                    width={200}
+                    height={200}
+                    quality={100}
+                    className="mx-auto object-cover object-center"
+                    priority
+                  />
+                  <p className="text-center text-sm text-muted-foreground">
+                    No hay registros para mostrar.
+                  </p>
+                  <p className="text-center text-sm text-muted-foreground">
+                    Intenta con diferentes filtros o busca en otra sección.
+                  </p>
+                </BlurFade>
               </TableCell>
             </TableRow>
           )}

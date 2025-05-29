@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Experimento 01 - Crafted.is',
+  title: 'Secure Dash | Fail2BanLogs',
+  description:
+    'Revisa los registros y estadísticas más recientes de Fail2Ban. Monitorea y gestiona los bloqueos de manera efectiva.',
 };
 
 import React from 'react';
