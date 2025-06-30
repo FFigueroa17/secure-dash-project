@@ -4,8 +4,8 @@ import { ChartLine, LayoutDashboard, LogOut, Users } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
 
+import { AppLogo } from '@/components/app-logo';
 import { SearchForm } from '@/components/search-form';
-import { TeamSwitcher } from '@/components/team-switcher';
 import {
   Sidebar,
   SidebarContent,
@@ -21,29 +21,23 @@ import {
 } from '@/components/ui/sidebar';
 
 const data = {
-  teams: [
-    {
-      name: 'SecureDash',
-      logo: 'https://res.cloudinary.com/dlzlfasou/image/upload/v1741345507/logo-01_kp2j8x.png',
-    },
-  ],
   navMain: [
     {
       title: 'Secciones',
       items: [
         {
           title: 'Dashboard',
-          url: '/dashboard',
+          url: '/app/dashboard',
           icon: LayoutDashboard,
         },
         {
           title: 'IPs',
-          url: '/#',
+          url: '/app/ips',
           icon: ChartLine,
         },
         {
           title: 'Fail2Ban Logs',
-          url: '/',
+          url: '/app',
           icon: Users,
         },
       ],
@@ -73,7 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <AppLogo />
         <hr className="border-t border-border mx-2 -mt-px" />
         <SearchForm className="mt-3" />
       </SidebarHeader>

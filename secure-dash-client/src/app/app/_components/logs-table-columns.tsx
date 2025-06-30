@@ -3,8 +3,8 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import * as React from 'react';
 
-import { LogDetailsSheet } from '@/app/_components/log-details-sheet';
-import { getLogLevelConfig } from '@/app/_lib/utils';
+import { LogDetailsSheet } from '@/app/app/_components/log-details-sheet';
+import { getLogLevelConfig } from '@/app/app/_lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CopyButton } from '@/components/ui/copy-button';
@@ -191,28 +191,6 @@ export function getLogsTableColumns(
       header: () => <span className="sr-only">Acciones</span>,
       cell: ({ row }) => {
         return <LogDetailsSheet log={row.original || null} />;
-        // return (
-        //   <div className="flex justify-end">
-        //     <DropdownMenu>
-        //       <DropdownMenuTrigger asChild>
-        //         <Button
-        //           size="icon"
-        //           variant="ghost"
-        //           className="shadow-none text-muted-foreground/60 hover:bg-muted hover:text-foreground"
-        //           aria-label="Acciones de fila"
-        //         >
-        //           <Ellipsis className="size-5" size={20} aria-hidden="true" />
-        //         </Button>
-        //       </DropdownMenuTrigger>
-        //       <DropdownMenuContent align="end">
-        //         <DropdownMenuItem asChild>
-        //           {/* Log Details Sheet */}
-        //           <LogDetailsSheet log={row.original || null} />
-        //         </DropdownMenuItem>
-        //       </DropdownMenuContent>
-        //     </DropdownMenu>
-        //   </div>
-        // );
       },
       size: 80,
       enableHiding: false,

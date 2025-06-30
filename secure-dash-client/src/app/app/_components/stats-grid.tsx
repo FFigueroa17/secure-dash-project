@@ -1,7 +1,7 @@
 import { ArrowUpRight } from 'lucide-react';
 
-import { getFail2BanLogsOverview } from '@/app/_lib/queries';
-import { formatTitle, getIcon } from '@/app/_lib/utils';
+import { getFail2BanLogsOverview } from '@/app/app/_lib/queries';
+import { formatTitle, getIcon } from '@/app/app/_lib/utils';
 
 interface StatsCardProps {
   title: string;

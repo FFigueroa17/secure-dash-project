@@ -1,5 +1,26 @@
 'use client';
 
+import { Download } from 'lucide-react';
+import React, { useTransition } from 'react';
+
+import { LogsTableActionBar } from '@/app/app/_components/logs-table-action-bar';
+import { getLogsTableColumns } from '@/app/app/_components/logs-table-columns';
+import { getFail2BanLogs } from '@/app/app/_lib/queries';
+import { getLogLevelConfig } from '@/app/app/_lib/utils';
+import AnimatedLoading from '@/components/animated-loading';
+import DataTable from '@/components/data-table/data-table';
+import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
+import { Button } from '@/components/ui/button';
+import { useDataTable } from '@/hooks/use-data-table';
+import { exportTableToCSV } from '@/lib/export';
+
+interface LogsTableProps {
+  /**
+   * Promise resolving to the paginated logs API response.
+   */
+  promises: Promise<Awaited<ReturnType<typeof getFail2BanLogs>>>;
+}
+
 /**
  * LogsTable component for displaying Fail2Ban logs in a paginated, filterable, and exportable table.
  *
@@ -16,33 +37,9 @@
  *   <LogsTable promises={getFail2BanLogs(...)} />
  */
 
-import { Download } from 'lucide-react';
-import React, { useTransition } from 'react';
-
-import { getLogsTableColumns } from '@/app/_components/logs-table-columns';
-import { getFail2BanLogs } from '@/app/_lib/queries';
-import { getLogLevelConfig } from '@/app/_lib/utils';
-import AnimatedLoading from '@/components/animated-loading';
-import DataTable from '@/components/data-table/data-table';
-import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
-import { Button } from '@/components/ui/button';
-import { useDataTable } from '@/hooks/use-data-table';
-import { exportTableToCSV } from '@/lib/export';
-
-interface LogsTableProps {
-  /**
-   * Promise resolving to the paginated logs API response.
-   */
-  promises: Promise<Awaited<ReturnType<typeof getFail2BanLogs>>>;
-}
-
-/**
- * LogsTable displays Fail2Ban logs with filtering and export capabilities.
- */
 const LogsTable = ({ promises }: LogsTableProps) => {
   // Await the logs data from the provided promise.
   const data = React.use(promises);
-
   const [isPending, startTransition] = useTransition();
 
   // Memoize the columns definition for the table.
@@ -67,7 +64,7 @@ const LogsTable = ({ promises }: LogsTableProps) => {
       <DataTable
         table={table}
         columns={columns}
-        actionBar={<></>}
+        actionBar={<LogsTableActionBar table={table} />}
         isPending={isPending}
       >
         {/* DataTableToolbar provides filtering and export actions */}
@@ -124,21 +121,23 @@ const LogsTable = ({ promises }: LogsTableProps) => {
             },
           ]}
         >
-          {/* Export button: enabled only if at least one row is selected */}
-          <Button
-            variant="filter"
-            disabled={table.getFilteredSelectedRowModel().rows.length === 0}
-            onClick={() =>
-              exportTableToCSV(table, {
-                filename: 'fail2ban-logs',
-                excludeColumns: ['select', 'actions'],
-                onlySelected: true,
-              })
-            }
-          >
-            <Download strokeWidth={1.5} />
-            Exportar
-          </Button>
+          <>
+            {/* Export button: enabled only if at least one row is selected */}
+            <Button
+              variant="filter"
+              disabled={table.getFilteredSelectedRowModel().rows.length === 0}
+              onClick={() =>
+                exportTableToCSV(table, {
+                  filename: 'fail2ban-logs',
+                  excludeColumns: ['select', 'actions'],
+                  onlySelected: true,
+                })
+              }
+            >
+              <Download strokeWidth={1.5} />
+              Exportar
+            </Button>
+          </>
         </DataTableToolbar>
       </DataTable>
     </>

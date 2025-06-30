@@ -95,7 +95,7 @@ function DataTableToolbarFilter<TData>({
             <Input
               id={`${filter.column.id}-input`}
               className={cn(
-                'peer min-w-60 ps-9 bg-background bg-gradient-to-br from-accent/60 to-accent',
+                'peer min-w-60 ps-9 bg-background bg-gradient-to-br from-accent/60 to-accent h-9',
               )}
               value={(filter.column.getFilterValue() ?? '') as string}
               onChange={(e) => filter.column.setFilterValue(e.target.value)}

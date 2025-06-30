@@ -3,10 +3,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 
-import { AppSidebar } from '@/components/app-sidebar';
-import Header from '@/components/header';
 import { Providers } from '@/components/providers';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 
 const fontSans = Inter({
   subsets: ['latin'],
@@ -26,15 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark scheme-only-dark">
       <body className={`${fontSans.variable} font-sans antialiased`}>
-        <Providers>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="overflow-hidden px-4 md:px-6 lg:px-8">
-              <Header />
-              {children}
-            </SidebarInset>
-          </SidebarProvider>
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

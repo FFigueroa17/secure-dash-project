@@ -48,7 +48,8 @@ function DataTableActionBar<TData>({
   }, [table]);
 
   const container =
-    containerProp ?? (mounted ? globalThis.document?.body : null);
+    containerProp ??
+    (mounted ? globalThis.document?.querySelector('main') : null);
 
   if (!container) return null;
 
@@ -56,7 +57,7 @@ function DataTableActionBar<TData>({
     visibleProp ?? table.getFilteredSelectedRowModel().rows.length > 0;
 
   return ReactDOM.createPortal(
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {visible && (
         <motion.div
           role="toolbar"
@@ -66,9 +67,13 @@ function DataTableActionBar<TData>({
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.2, ease: 'easeInOut' }}
           className={cn(
-            'fixed inset-x-0 bottom-6 z-50 mx-auto flex w-fit flex-wrap items-center justify-center gap-2 rounded-md border bg-background p-2 text-foreground shadow-sm',
+            'fixed bottom-6 z-50 flex w-fit flex-wrap items-center justify-center gap-2 rounded-md border bg-background p-2 text-foreground shadow-sm',
             className,
           )}
+          style={{
+            left: '50%',
+            transform: 'translateX(-50%)',
+          }}
           {...props}
         >
           {children}
@@ -160,7 +165,7 @@ function DataTableActionBarSelection<TData>({
           sideOffset={10}
           className="flex items-center gap-2 border bg-accent px-2 py-1 font-semibold text-foreground dark:bg-zinc-900 [&>span]:hidden"
         >
-          <p>Clear selection</p>
+          <p>Limpiar selección</p>
           <kbd className="select-none rounded border bg-background px-1.5 py-px font-mono font-normal text-[0.7rem] text-foreground shadow-xs">
             <abbr title="Escape" className="no-underline">
               Esc

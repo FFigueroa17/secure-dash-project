@@ -41,7 +41,7 @@ const Header = () => {
         <Button variant="ghost" className="h-auto p-0 hover:bg-transparent">
           <Avatar className="size-8">
             <AvatarImage
-              src="https://res.cloudinary.com/dlzlfasou/image/upload/v1741345506/user_sam4wh.png"
+              src="https://images.unsplash.com/photo-1750535135451-7c20e24b60c1?q=80&w=2360&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
               width={32}
               height={32}
               alt="Profile image"
