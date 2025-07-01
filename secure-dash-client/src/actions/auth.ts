@@ -71,8 +71,9 @@ export const signup = async (formData: FormData) => {
     throw new Error(responseJson.detail);
   }
 
-  // Redirect to login page on successful registration
-  redirect('/?mode=login');
+  return {
+    ok: true,
+  };
 };
 
 /**
@@ -135,7 +136,7 @@ export const signin = async (formData: FormData) => {
     throw new Error(result.error.message);
   }
 
-  // Redirect to protected application area
+  // Redirect to app after successful authentication
   redirect('/app');
 };
 

@@ -96,18 +96,6 @@ export function getLogsTableColumns(
       ),
     },
     {
-      header: 'PID',
-      accessorKey: 'pid',
-      cell: ({ row }) => {
-        const pid = row.getValue('pid') as string | null;
-        return (
-          <Badge variant="secondary" className="font-mono">
-            {pid}
-          </Badge>
-        );
-      },
-    },
-    {
       header: 'Tipo de Evento',
       accessorKey: 'eventType',
       cell: ({ row }) => {

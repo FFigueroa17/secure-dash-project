@@ -1,9 +1,17 @@
 'use client';
 
-import { ChartLine, LayoutDashboard, LogOut, Users } from 'lucide-react';
+import {
+  LayoutDashboard,
+  LogOut,
+  LucideIcon,
+  Shield,
+  Users,
+} from 'lucide-react';
+import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
 
+import { logout } from '@/actions/auth';
 import { AppLogo } from '@/components/app-logo';
 import { SearchForm } from '@/components/search-form';
 import {
@@ -19,6 +27,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 
 const data = {
   navMain: [
@@ -31,9 +40,9 @@ const data = {
           icon: LayoutDashboard,
         },
         {
-          title: 'IPs',
-          url: '/app/ips',
-          icon: ChartLine,
+          title: 'Lista de IPs',
+          url: '/app/banned-ips',
+          icon: Shield,
         },
         {
           title: 'Fail2Ban Logs',
@@ -61,9 +70,39 @@ const data = {
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+function SidebarNavItem({
+  item,
+}: {
+  item: { title: string; url: string; icon: LucideIcon };
+}) {
   const pathname = usePathname();
+  const { pending } = useLinkStatus();
 
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        className="group/menu-button font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
+        isActive={pathname === item.url}
+      >
+        <Link href={item.url} prefetch>
+          {item.icon && (
+            <item.icon
+              className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
+              size={22}
+              aria-hidden="true"
+            />
+          )}
+          <span className={cn(pending && 'animate-pulse opacity-70')}>
+            {item.title}
+          </span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -81,24 +120,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarGroupContent className="px-2">
               <SidebarMenu>
                 {item.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      className="group/menu-button font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
-                      isActive={pathname === item.url}
-                    >
-                      <a href={item.url}>
-                        {item.icon && (
-                          <item.icon
-                            className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
-                            size={22}
-                            aria-hidden="true"
-                          />
-                        )}
-                        <span>{item.title}</span>
-                      </a>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <SidebarNavItem key={item.title} item={item} />
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -109,7 +131,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <hr className="border-t border-border mx-2 -mt-px" />
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto">
+            <SidebarMenuButton
+              onClick={async () => {
+                await logout();
+              }}
+              className="font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
+            >
               <LogOut
                 className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
                 size={22}

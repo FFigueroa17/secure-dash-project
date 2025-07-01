@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -157,6 +157,9 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
               className="w-full bg-primary py-4 font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
               disabled={form.formState.isSubmitting}
             >
+              {form.formState.isSubmitting && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
               {form.formState.isSubmitting ? 'Signing In...' : 'Sign In'}
             </Button>
           </form>

@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 import { decrypt } from '@/lib/session';
 
 // 1. Specify protected and public routes
-const protectedRoutes = ['/app', '/app/dashboard', '/app/ips'];
+const protectedRoutes = ['/app', '/app/dashboard', '/app/banned-ips'];
 const publicRoutes = ['/'];
 
 /**

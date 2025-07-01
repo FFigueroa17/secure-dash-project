@@ -13,8 +13,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { cache } from 'react';
 
-import { decrypt } from '@/lib/session';
-import { User } from '@/types/user';
+import { decrypt, SessionPayload } from '@/lib/session';
 
 /**
  * Interface defining the structure of a verified session.
@@ -76,34 +75,18 @@ export const verifySession = cache(async (): Promise<VerifiedSession> => {
  * }
  * ```
  */
-export const getUser = cache(async (): Promise<User | null> => {
-  // Verify the session first to ensure user is authenticated
-  const session = await verifySession();
-  if (!session) return null;
+export const getUser = cache(async (): Promise<SessionPayload | null> => {
+  // Retrieve the session cookie from the request
+  const cookie = (await cookies()).get('session')?.value;
 
-  try {
-    // Make authenticated request to FastAPI backend to get user data
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/whoami`, {
-      headers: {
-        Authorization: `Bearer ${session.token}`,
-        'Content-Type': 'application/json',
-      },
-    });
+  // Decrypt and verify the session token
+  const session = await decrypt(cookie);
 
-    // Parse the response JSON
-    const responseJson = await response.json();
-
-    // Check if the request was successful
-    if (!response.ok || responseJson.message) {
-      console.log('Failed to fetch user:', responseJson.message);
-      return null;
-    }
-
-    // Return the user data from the API response
-    return responseJson;
-  } catch (error) {
-    // Log any network or parsing errors and return null
-    console.log('Failed to fetch user:', error);
+  // Return null if the session is invalid
+  if (!session) {
     return null;
   }
+
+  // Return the session payload
+  return session;
 });

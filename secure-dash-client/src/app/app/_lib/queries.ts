@@ -63,17 +63,7 @@ export async function getFail2BanLogs(
         const response = await res.json();
         return response;
       } catch (error) {
-        console.error('Error fetching fail2ban logs:', error);
-        // Return a safe default response structure to prevent UI crashes
-        // This ensures the data table can still render with empty state
-        return {
-          totalCount: 0,
-          totalPages: 0,
-          currentPage: 0,
-          hasNextPage: false,
-          hasPreviousPage: false,
-          values: [],
-        };
+        throw error;
       }
     },
     // Cache key includes all parameters that affect the query result
@@ -149,14 +139,7 @@ export async function getFail2BanLogsOverview(): Promise<Fail2BanOverview> {
         return response;
       } catch (error) {
         console.error('Error fetching fail2ban logs:', error);
-        // Return safe default values to prevent dashboard from breaking
-        // All statistics default to 0 to indicate no data available
-        return {
-          logs_difference: 0,
-          parse_rate: 0,
-          ban_events: 0,
-          warn_error_logs: 0,
-        };
+        throw error;
       }
     },
     [], // No cache key dependencies - statistics are global and don't vary by user input

@@ -1,12 +1,13 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { signup } from '@/actions/auth';
+import { navigate } from '@/app/_lib/actions';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -56,6 +57,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
         message: 'Registration failed, please try again. ' + result.error,
       });
     }
+
+    // Redirect to login page on successful registration
+    navigate('/?mode=login');
   };
 
   return (
@@ -236,6 +240,9 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
               disabled={form.formState.isSubmitting}
               className="w-full"
             >
+              {form.formState.isSubmitting && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              )}
               {form.formState.isSubmitting
                 ? 'Creating Account...'
                 : 'Create Account'}

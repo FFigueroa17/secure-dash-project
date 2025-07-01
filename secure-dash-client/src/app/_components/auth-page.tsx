@@ -2,12 +2,13 @@
 
 import { AnimatePresence, motion } from 'motion/react';
 import Image from 'next/image';
+import { parseAsStringEnum, useQueryState } from 'nuqs';
+
+import { HERO_IMAGE_URL } from '@/app/_lib/consts';
+import { testimonials } from '@/app/_lib/consts';
 
 import { LoginForm } from './login-form';
 import { RegisterForm } from './register-form';
-import { HERO_IMAGE_URL } from '@/app/_lib/consts';
-import { testimonials } from '@/app/_lib/consts';
-import { parseAsStringEnum, useQueryState } from 'nuqs';
 
 export interface Testimonial {
   avatarSrc: string;

@@ -5,11 +5,17 @@ import { formatTitle, getIcon } from '@/app/app/_lib/utils';
 
 interface StatsCardProps {
   title: string;
-  value: number;
+  value: number | string;
   icon: React.ReactNode;
+  description?: string;
 }
 
-export function StatsCard({ title, value, icon }: StatsCardProps) {
+export function StatsCard({
+  title,
+  value,
+  icon,
+  description = 'vs última hora',
+}: StatsCardProps) {
   return (
     <div className="relative p-4 lg:p-5 group before:absolute before:inset-y-8 before:right-0 before:w-px before:bg-gradient-to-b before:from-input/30 before:via-input before:to-input/30 last:before:hidden">
       <div className="relative flex items-center gap-4">
@@ -28,14 +34,9 @@ export function StatsCard({ title, value, icon }: StatsCardProps) {
             {title}
           </h3>
           <div className="text-2xl font-semibold mb-2">
-            {Number.isFinite(value) ? value.toFixed(1) : value}
+            {Number.isFinite(Number(value)) ? Number(value).toFixed(1) : value}
           </div>
-          <div className="text-xs text-muted-foreground/60">
-            {/* <span className={cn('font-medium', trendColor)}>
-              {isPositive ? '↗' : '↘'} {value}%
-            </span>{' '} */}
-            vs última hora
-          </div>
+          <div className="text-xs text-muted-foreground/60">{description}</div>
         </div>
       </div>
     </div>

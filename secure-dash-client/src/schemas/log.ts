@@ -45,3 +45,73 @@ export interface Fail2BanOverview {
   ban_events: number;
   warn_error_logs: number;
 }
+
+/**
+ * Represents the reputation information for a banned IP.
+ */
+export interface BannedIPReputation {
+  /** Number of previous bans for this IP */
+  previous_bans_count: number;
+  /** Total number of bans ever for this IP */
+  total_bans_ever: number;
+  /** First time this IP was seen */
+  first_seen: string;
+  /** Last ban before the current one */
+  last_ban_before: string;
+  /** Whether this IP is a repeat offender */
+  is_repeat_offender: boolean;
+  /** Attack frequency level */
+  attack_frequency: 'baja' | 'media' | 'alta';
+  /** Days since first seen */
+  days_since_first_seen: number;
+}
+
+/**
+ * Represents the threat level assessment for a banned IP.
+ */
+export interface BannedIPThreatLevel {
+  /** Threat score (0-10) */
+  score: number;
+  /** Maximum possible score */
+  max_score: number;
+  /** Threat level category */
+  level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  /** Reasons for the threat level */
+  reasons: string[];
+  /** Recommended action for this IP */
+  recommended_action: string;
+}
+
+/**
+ * Represents a banned IP with detailed information.
+ */
+export interface BannedIP {
+  /** The banned IP address */
+  ip: string;
+  /** The jail that banned this IP */
+  jail: string;
+  /** When the IP was banned */
+  ban_time: string;
+  /** Duration of the ban */
+  ban_duration_time: string;
+  /** Number of failed attempts */
+  failed_attempts: number;
+  /** Raw log entry */
+  raw_log: string;
+  /** Reputation information */
+  reputation: BannedIPReputation;
+  /** Threat level assessment */
+  threat_level: BannedIPThreatLevel;
+}
+
+/**
+ * Represents the overview statistics for banned IPs
+ */
+export interface BannedIPsOverview {
+  summary: {
+    jail_name: number;
+    total_banned_ips: number;
+    ban_duration: number;
+    ban_duration_seconds: number;
+  };
+}

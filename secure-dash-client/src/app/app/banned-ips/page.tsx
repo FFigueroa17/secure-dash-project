@@ -1,30 +1,30 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Secure Dash | Fail2BanLogs',
+  title: 'Secure Dash | Lista de IPs Bloqueadas',
   description:
-    'Revisa los registros y estadísticas más recientes de Fail2Ban. Monitorea y gestiona los bloqueos de manera efectiva.',
+    'Revisa las IPs bloqueadas y su información de amenaza. Monitorea reincidentes y gestiona bloqueos de manera efectiva.',
 };
 
 import React from 'react';
 
-import LogsTable from '@/app/app/_components/logs-table';
-import { StatsGrid } from '@/app/app/_components/stats-grid';
-import { getFail2BanLogs } from '@/app/app/_lib/queries';
-import { searchParamsCache } from '@/app/app/_lib/validations';
+import { BannedIPsStatsGrid } from '@/app/app/banned-ips/_components/banned-ips-stats-grid';
+import BannedIPsTable from '@/app/app/banned-ips/_components/banned-ips-table';
+import { getBannedIPs } from '@/app/app/banned-ips/_lib/queries';
+import { bannedIPsSearchParamsCache } from '@/app/app/banned-ips/_lib/validations';
 import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton';
 import StatsGridSkeleton from '@/components/stats-grid-skeleton';
 import { SearchParams } from '@/types';
 
-interface IndexPageProps {
+interface BannedIPsPageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export default async function Page(props: IndexPageProps) {
+export default async function BannedIPsPage(props: BannedIPsPageProps) {
   const searchParams = await props.searchParams;
-  const search = searchParamsCache.parse(searchParams);
+  const search = bannedIPsSearchParamsCache.parse(searchParams);
 
-  const fail2BanLogs = getFail2BanLogs({
+  const bannedIPs = getBannedIPs({
     ...search,
   });
 
@@ -33,17 +33,17 @@ export default async function Page(props: IndexPageProps) {
       {/* Page intro */}
       <div className="flex items-center justify-between gap-4 md:flex-shrink-0">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Logs de Fail2Ban</h1>
+          <h1 className="text-2xl font-semibold">Lista de IPs</h1>
           <p className="text-sm text-muted-foreground">
-            Revisa los registros y estadísticas más recientes de Fail2Ban.
-            Monitorea y gestiona los bloqueos de manera efectiva.
+            Revisa las IPs bloqueadas y su información de amenaza. Monitorea
+            reincidentes y gestiona bloqueos de manera efectiva.
           </p>
         </div>
       </div>
-      {/* Numbers */}
+      {/* Stats */}
       <div className="md:flex-shrink-0">
         <React.Suspense fallback={<StatsGridSkeleton />}>
-          <StatsGrid />
+          <BannedIPsStatsGrid />
         </React.Suspense>
       </div>
       {/* Table */}
@@ -51,22 +51,24 @@ export default async function Page(props: IndexPageProps) {
         <React.Suspense
           fallback={
             <DataTableSkeleton
-              columnCount={7}
-              filterCount={2}
+              columnCount={9}
+              filterCount={3}
               cellWidths={[
                 '10rem',
-                '30rem',
+                '16rem',
+                '18rem',
+                '8rem',
                 '10rem',
+                '16rem',
                 '10rem',
-                '6rem',
-                '6rem',
-                '6rem',
+                '8rem',
+                '8rem',
               ]}
               shrinkZero
             />
           }
         >
-          <LogsTable promises={fail2BanLogs} />
+          <BannedIPsTable promises={bannedIPs} />
         </React.Suspense>
       </div>
     </div>

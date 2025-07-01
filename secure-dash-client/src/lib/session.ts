@@ -15,13 +15,13 @@ import { cookies } from 'next/headers';
  * Interface defining the structure of session data stored in JWT payload.
  * Extends the standard JWT payload with application-specific user information.
  */
-interface SessionPayload extends JWTPayload {
+export interface SessionPayload extends JWTPayload {
   /** Unique identifier for the user */
   userId: string;
   /** Username of the authenticated user */
   username: string;
   /** Role/permission level of the user (e.g., 'admin', 'user') */
-  role: string;
+  roles: string[];
   /**  JWT Token */
   token: string;
   /** Expiration date of the session */
@@ -125,7 +125,7 @@ export const createSession = async (token: string) => {
   const session = await encrypt({
     userId: user.id || '',
     username: user.username,
-    role: user.role || '',
+    roles: user.roles,
     token,
     expiresAt,
   });
