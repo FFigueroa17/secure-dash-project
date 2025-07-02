@@ -4,10 +4,10 @@ import { Copy, ExternalLink, Shield } from 'lucide-react';
 import { motion } from 'motion/react';
 
 import { TopIP } from '@/app/app/dashboard/_lib/types';
+import { ActionButton } from '@/components/ui/action-button';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { cn, copyToClipboard, getRiskColor, openIPDetails } from '@/lib/utils';
 
 interface TopIPsTableProps {
   data: TopIP[];
@@ -15,21 +15,6 @@ interface TopIPsTableProps {
 
 export function TopIPsTable({ data }: TopIPsTableProps) {
   const sortedData = [...data].sort((a, b) => b.bans - a.bans).slice(0, 5);
-
-  const getRiskColor = (bans: number) => {
-    if (bans >= 10)
-      return 'bg-destructive/10 text-destructive border-destructive/20';
-    if (bans >= 3) return 'bg-warning/10 text-warning border-warning/20';
-    return 'bg-primary/10 text-primary border-primary/20';
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-
-  const openIPDetails = (ip: string) => {
-    window.open(`https://whatismyipaddress.com/ip/${ip}`, '_blank');
-  };
 
   return (
     <motion.div
@@ -103,27 +88,22 @@ export function TopIPsTable({ data }: TopIPsTableProps) {
                         getRiskColor(item.bans),
                       )}
                     >
-                      {item.bans} bans
+                      {item.bans} intentos
                     </Badge>
                     <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(item.ip)}
-                        className="h-8 w-8 p-0 hover:bg-accent hover:scale-105 transition-all duration-200"
-                        title="Copy IP address"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openIPDetails(item.ip)}
-                        className="h-8 w-8 p-0 hover:bg-accent hover:scale-105 transition-all duration-200"
-                        title="View geo information"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </Button>
+                      <ActionButton
+                        icon={Copy}
+                        onAction={() => copyToClipboard(item.ip)}
+                        tooltipMessage="Copy IP address"
+                        iconSize={12}
+                      />
+                      <ActionButton
+                        icon={ExternalLink}
+                        onAction={() => openIPDetails(item.ip)}
+                        tooltipMessage="View geo information"
+                        iconSize={12}
+                        showSuccessAnimation={false}
+                      />
                     </div>
                   </div>
                 </motion.div>

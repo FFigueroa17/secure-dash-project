@@ -13,7 +13,7 @@ import { StatsGrid } from '@/app/app/_components/stats-grid';
 import { getFail2BanLogs } from '@/app/app/_lib/queries';
 import { searchParamsCache } from '@/app/app/_lib/validations';
 import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton';
-import StatsGridSkeleton from '@/components/stats-grid-skeleton';
+import StatsGridSkeleton from '@/components/stats/stats-grid-skeleton';
 import { SearchParams } from '@/types';
 
 interface IndexPageProps {

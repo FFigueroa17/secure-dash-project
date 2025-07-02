@@ -21,7 +21,7 @@ export function AlertsToast({ alerts }: AlertsToastProps) {
 
     alerts.forEach((alert) => {
       // Create unique key for each alert to prevent duplicates
-      const alertKey = `${alert.ip}-${alert.bansLastHour}`;
+      const alertKey = `${alert.ip}-${alert.attempts}`;
 
       // Only show if we haven't shown this exact alert before
       if (!shownAlertsRef.current.has(alertKey)) {
@@ -51,11 +51,8 @@ export function AlertsToast({ alerts }: AlertsToastProps) {
                 </span>
               </div>
               <div className="text-xs text-muted-foreground bg-muted/50 rounded-md p-2 border">
-                <strong>{alert.bansLastHour}</strong> ban
-                {alert.bansLastHour !== 1 ? 's' : ''} detected in the last hour
-              </div>
-              <div className="text-xs text-amber-600 bg-amber-50 rounded-md p-2 border border-amber-200">
-                Consider adding this IP to your permanent blocklist
+                <strong>{alert.attempts}</strong> attempt
+                {alert.attempts !== 1 ? 's' : ''} detected recently
               </div>
             </div>
           ),

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import { useDashboardStore, WebSocketData } from '@/lib/store/dashboard-store';
+import { WebSocketData } from '@/app/app/dashboard/_lib/types';
+import { useDashboardStore } from '@/lib/store/dashboard-store';
 
 interface UseDashboardWebSocketOptions {
   url: string;
@@ -25,14 +26,14 @@ export function useDashboardWebSocket({
     }
 
     try {
-      console.log('🔌 Connecting to WebSocket:', url);
+      console.warn('🔌 Connecting to WebSocket:', url);
       setConnectionState({ isConnected: false, isConnecting: true });
 
       const ws = new WebSocket(url);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log('✅ Dashboard WebSocket connected successfully');
+        console.warn('✅ Dashboard WebSocket connected successfully');
         reconnectAttemptsRef.current = 0;
         setConnectionState({
           isConnected: true,
@@ -43,13 +44,13 @@ export function useDashboardWebSocket({
 
       ws.onmessage = (event) => {
         try {
-          console.log('📦 WebSocket message received:', event.data);
+          console.warn('📦 WebSocket message received:', event.data);
           const data: WebSocketData = JSON.parse(event.data);
-          console.log('📊 Parsed WebSocket data:', data);
+          console.warn('📊 Parsed WebSocket data:', data);
 
           // Validate data structure
           if (data && typeof data === 'object') {
-            console.log('✅ Data validation passed, updating store');
+            console.warn('✅ Data validation passed, updating store');
             updateData(data);
           } else {
             console.warn('⚠️ Invalid data structure received:', data);
@@ -61,7 +62,7 @@ export function useDashboardWebSocket({
       };
 
       ws.onclose = (event) => {
-        console.log(
+        console.warn(
           '🔌 Dashboard WebSocket disconnected:',
           event.code,
           event.reason,
@@ -71,7 +72,7 @@ export function useDashboardWebSocket({
         // Auto-reconnect logic
         if (reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current++;
-          console.log(
+          console.warn(
             `🔄 Reconnecting... attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`,
           );
           reconnectTimeoutRef.current = setTimeout(() => {
@@ -118,7 +119,7 @@ export function useDashboardWebSocket({
     }
 
     if (wsRef.current) {
-      console.log('🔌 Disconnecting WebSocket');
+      console.warn('🔌 Disconnecting WebSocket');
       wsRef.current.close();
       wsRef.current = null;
     }
@@ -127,7 +128,7 @@ export function useDashboardWebSocket({
   }, [setConnectionState]);
 
   const reconnect = useCallback(() => {
-    console.log('🔄 Manual reconnect triggered');
+    console.warn('🔄 Manual reconnect triggered');
     disconnect();
     reconnectAttemptsRef.current = 0;
     connect();

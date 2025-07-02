@@ -1,19 +1,20 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
+import { Copy, ExternalLink } from 'lucide-react';
 import * as React from 'react';
 
 import { LogDetailsSheet } from '@/app/app/_components/log-details-sheet';
 import { getLogLevelConfig } from '@/app/app/_lib/utils';
+import { ActionButton } from '@/components/ui/action-button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CopyButton } from '@/components/ui/copy-button';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+import { cn, copyToClipboard, openIPDetails } from '@/lib/utils';
 import { Fail2BanLog } from '@/schemas/log';
 import type { DataTableRowAction } from '@/types/data-table';
 
@@ -57,6 +58,7 @@ export function getLogsTableColumns(
       header: 'Fecha',
       accessorKey: 'timestamp',
       enableColumnFilter: true,
+      enableSorting: false,
       cell: ({ row }) => {
         const timestamp = row.getValue('timestamp') as string;
         // Format date to show only the date and time
@@ -84,20 +86,25 @@ export function getLogsTableColumns(
           </Tooltip>
         );
       },
-      size: 180,
+      size: 160,
     },
     {
       header: 'Servicio',
       accessorKey: 'service',
+      enableSorting: false,
       cell: ({ row }) => (
         <span className="text-muted-foreground capitalize">
           {row.getValue('service')}
         </span>
       ),
+      size: 120,
     },
     {
-      header: 'Tipo de Evento',
+      id: 'eventType',
+      header: 'Tipo de evento',
       accessorKey: 'eventType',
+      enableColumnFilter: true,
+      enableSorting: false,
       cell: ({ row }) => {
         const eventType = row.getValue('eventType') as string | null;
         return (
@@ -106,10 +113,12 @@ export function getLogsTableColumns(
           </Badge>
         );
       },
+      size: 140,
     },
     {
       header: 'Detalles IP',
       accessorKey: 'ip',
+      enableSorting: false,
       cell: ({ row }) => {
         const ip = row.getValue('ip') as string | null;
 
@@ -128,16 +137,30 @@ export function getLogsTableColumns(
             >
               {ip}
             </Badge>
-            <CopyButton value={ip} tooltipMessage={`Copiar IP: ${ip}`} />
+            <ActionButton
+              icon={Copy}
+              onAction={() => copyToClipboard(ip)}
+              tooltipMessage="Copiar IP"
+              iconSize={12}
+            />
+            <ActionButton
+              icon={ExternalLink}
+              onAction={() => openIPDetails(ip)}
+              tooltipMessage="Ver Geolocalización"
+              iconSize={12}
+              showSuccessAnimation={false}
+            />
           </div>
         );
       },
+      size: 200,
     },
     {
       id: 'level',
       header: 'Nivel',
       accessorKey: 'level',
       enableColumnFilter: true,
+      enableSorting: false,
       cell: ({ row }) => {
         const level = row.getValue('level') as string;
         const { icon, badgeClass } = getLogLevelConfig(level);
@@ -160,6 +183,7 @@ export function getLogsTableColumns(
       header: 'Mensaje',
       accessorKey: 'message',
       enableColumnFilter: true,
+      enableSorting: false,
       cell: ({ row }) => (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -180,7 +204,7 @@ export function getLogsTableColumns(
       cell: ({ row }) => {
         return <LogDetailsSheet log={row.original || null} />;
       },
-      size: 80,
+      size: 60,
       enableHiding: false,
     },
   ];

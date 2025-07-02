@@ -3,7 +3,14 @@
 import { BarChart3, Clock } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useMemo } from 'react';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  Cell,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +19,6 @@ import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
 interface BanUnbanChartProps {
   data: Array<{ time: string; banRate: number; unbanRate: number }>;
   avgDetectionTime?: number;
-  previousDetectionTime?: number;
 }
 
 // Custom tooltip content that filters out placeholder values
@@ -33,10 +39,18 @@ function CustomTooltipContent({ active, payload, label }: CustomTooltipProps) {
     return null;
   }
 
-  // Filter out placeholder data entries
+  // Filter out placeholder data entries by checking the actual data values
   const filteredPayload = payload.filter((entry: TooltipPayload) => {
     const dataKey = entry.dataKey;
-    return !dataKey.includes('Placeholder') && entry.value > 0;
+    if (dataKey === 'banRateDisplay') {
+      // Only show if the original banRate was > 0
+      return entry.value > 0.05; // Our placeholder value is 0.05
+    }
+    if (dataKey === 'unbanRateDisplay') {
+      // Only show if the original unbanRate was > 0
+      return entry.value > 0.05; // Our placeholder value is 0.05
+    }
+    return entry.value > 0;
   });
 
   if (filteredPayload.length === 0) {
@@ -48,8 +62,8 @@ function CustomTooltipContent({ active, payload, label }: CustomTooltipProps) {
       <div className="font-medium">{label}</div>
       <div className="grid gap-1.5">
         {filteredPayload.map((item: TooltipPayload) => {
-          const isUnban = item.dataKey === 'unbanRate';
-          const color = isUnban ? 'rgb(34 197 94)' : 'rgb(239 68 68)';
+          const isUnban = item.dataKey === 'unbanRateDisplay';
+          const color = isUnban ? 'var(--primary)' : 'var(--destructive)';
           const label = isUnban ? 'Desbloqueos' : 'Bloqueos';
 
           return (
@@ -64,7 +78,7 @@ function CustomTooltipContent({ active, payload, label }: CustomTooltipProps) {
               <div className="flex flex-1 justify-between leading-none items-center">
                 <span className="text-muted-foreground">{label}</span>
                 <span className="text-foreground font-mono font-medium tabular-nums">
-                  {item.value.toLocaleString()}
+                  {Math.floor(item.value).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -78,7 +92,6 @@ function CustomTooltipContent({ active, payload, label }: CustomTooltipProps) {
 export function BanUnbanChart({
   data,
   avgDetectionTime = 0,
-  previousDetectionTime,
 }: BanUnbanChartProps) {
   const chartConfig = {
     banRate: {
@@ -103,8 +116,12 @@ export function BanUnbanChart({
   const transformedData = useMemo(() => {
     return data.map((item) => ({
       ...item,
-      banRatePlaceholder: item.banRate === 0 && item.unbanRate > 0 ? 0.1 : 0,
-      unbanRatePlaceholder: item.unbanRate === 0 && item.banRate > 0 ? 0.1 : 0,
+      // Use the actual values or a small placeholder if zero
+      banRateDisplay: item.banRate > 0 ? item.banRate : 0.05,
+      unbanRateDisplay: item.unbanRate > 0 ? item.unbanRate : 0.05,
+      // Track if values are placeholders for styling
+      isBanPlaceholder: item.banRate === 0,
+      isUnbanPlaceholder: item.unbanRate === 0,
     }));
   }, [data]);
 
@@ -114,15 +131,6 @@ export function BanUnbanChart({
 
     return { totalBans, totalUnbans };
   }, [data]);
-
-  const detectionTrend = useMemo(() => {
-    if (
-      previousDetectionTime === undefined ||
-      previousDetectionTime === avgDetectionTime
-    )
-      return null;
-    return previousDetectionTime > avgDetectionTime ? 'improved' : 'worsened';
-  }, [avgDetectionTime, previousDetectionTime]);
 
   const formatDetectionTime = (seconds: number) => {
     if (seconds === 0) return 'Instantáneo';
@@ -169,11 +177,6 @@ export function BanUnbanChart({
                   {formatDetectionTime(avgDetectionTime)}
                 </Badge>
               </div>
-              {detectionTrend && (
-                <Badge variant="outline" className="text-xs px-1.5 py-0.5">
-                  {detectionTrend === 'improved' ? '↗ Mejor' : '↘ Peor'}
-                </Badge>
-              )}
             </motion.div>
           </div>
         </CardHeader>
@@ -189,6 +192,8 @@ export function BanUnbanChart({
                 <BarChart
                   data={transformedData}
                   margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                  barCategoryGap="20%"
+                  barGap={16}
                 >
                   <defs>
                     {/* Ban Rate Gradient */}
@@ -286,37 +291,41 @@ export function BanUnbanChart({
                   {/* Use custom tooltip content */}
                   <ChartTooltip content={<CustomTooltipContent />} />
 
-                  {/* Placeholder bars for empty ban rates */}
+                  {/* Ban rate bars - will use placeholder styling when value is 0 */}
                   <Bar
-                    dataKey="banRatePlaceholder"
-                    fill="url(#placeholderGradient)"
+                    dataKey="banRateDisplay"
                     radius={[3, 3, 0, 0]}
                     opacity={1}
-                  />
+                  >
+                    {transformedData.map((entry, index) => (
+                      <Cell
+                        key={`ban-${index}`}
+                        fill={
+                          entry.isBanPlaceholder
+                            ? 'url(#placeholderGradient)'
+                            : 'url(#banGradient)'
+                        }
+                      />
+                    ))}
+                  </Bar>
 
-                  {/* Placeholder bars for empty unban rates */}
+                  {/* Unban rate bars - will use placeholder styling when value is 0 */}
                   <Bar
-                    dataKey="unbanRatePlaceholder"
-                    fill="url(#placeholderGradient)"
+                    dataKey="unbanRateDisplay"
                     radius={[3, 3, 0, 0]}
                     opacity={1}
-                  />
-
-                  {/* Main ban rate bars */}
-                  <Bar
-                    dataKey="banRate"
-                    fill="url(#banGradient)"
-                    radius={[3, 3, 0, 0]}
-                    opacity={1}
-                  />
-
-                  {/* Main unban rate bars */}
-                  <Bar
-                    dataKey="unbanRate"
-                    fill="url(#unbanGradient)"
-                    radius={[3, 3, 0, 0]}
-                    opacity={1}
-                  />
+                  >
+                    {transformedData.map((entry, index) => (
+                      <Cell
+                        key={`unban-${index}`}
+                        fill={
+                          entry.isUnbanPlaceholder
+                            ? 'url(#placeholderGradient)'
+                            : 'url(#unbanGradient)'
+                        }
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>

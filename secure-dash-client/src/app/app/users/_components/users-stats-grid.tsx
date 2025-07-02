@@ -1,8 +1,8 @@
 import { Crown, User, Users } from 'lucide-react';
 import * as React from 'react';
 
-import { StatsCard } from '@/app/app/_components/stats-grid';
 import { getUsersOverview } from '@/app/app/users/_lib/queries';
+import { StatsCard } from '@/components/stats/stats-cards';
 
 export async function UsersStatsGrid() {
   const { totalUsers, adminUsers, regularUsers } = await getUsersOverview();
@@ -29,7 +29,7 @@ export async function UsersStatsGrid() {
   ];
 
   return (
-    <div className="flex flex-row justify-between items-center border border-border rounded-xl bg-gradient-to-br from-sidebar/60 to-sidebar">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center border border-border rounded-xl bg-gradient-to-br from-sidebar/60 to-sidebar">
       {stats.map((stat) => (
         <StatsCard
           key={stat.title}

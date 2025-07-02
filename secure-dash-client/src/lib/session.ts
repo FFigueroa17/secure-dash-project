@@ -78,7 +78,7 @@ export const decrypt = async (session: string | undefined = '') => {
     });
     return payload as SessionPayload;
   } catch (error) {
-    console.log('[DEBUG] Failed to verify session', error);
+    console.warn('[DEBUG] Failed to verify session', error);
     return null;
   }
 };

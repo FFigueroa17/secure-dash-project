@@ -14,6 +14,7 @@ export const searchParamsCache = createSearchParamsCache({
   message: parseAsString.withDefault(''),
   level: parseAsString.withDefault(''),
   timestamp: parseAsArrayOf(parseAsInteger, ',').withDefault([]),
+  eventType: parseAsString.withDefault(''),
 });
 
 export type GetLogsSchema = Awaited<ReturnType<typeof searchParamsCache.parse>>;

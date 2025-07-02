@@ -28,7 +28,10 @@ const DataTablePagination = <TData,>({
 }: DataTablePaginationProps<TData>) => {
   return (
     <div
-      className={cn('flex items-center justify-between gap-3', className)}
+      className={cn(
+        'flex flex-col md:flex-row items-center justify-between gap-3',
+        className,
+      )}
       {...props}
     >
       <div className="flex-1 whitespace-nowrap text-muted-foreground text-sm">

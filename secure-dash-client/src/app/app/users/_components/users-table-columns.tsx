@@ -145,30 +145,21 @@ export function getUsersTableColumns(
       accessorKey: 'id',
       cell: ({ row }) => {
         const id = row.getValue('id') as string;
-        const shortId = id.slice(0, 10) + '...';
+        const shortId = id.slice(0, 18) + '...';
 
         return (
-          <Tooltip>
-            <TooltipProvider>
-              <TooltipTrigger asChild>
-                <div className="flex gap-2 items-center">
-                  <Badge
-                    variant="secondary"
-                    className="font-mono gap-1 py-0.5 px-2 text-sm"
-                  >
-                    {shortId}
-                  </Badge>
-                  <CopyButton
-                    value={id}
-                    tooltipMessage={`Copiar ID completo: ${id}`}
-                  />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>ID completo: {id}</p>
-              </TooltipContent>
-            </TooltipProvider>
-          </Tooltip>
+          <div className="flex gap-2 items-center">
+            <Badge
+              variant="secondary"
+              className="font-mono py-1.5 px-2 text-xs flex items-center gap-3"
+            >
+              {shortId}
+              <CopyButton
+                value={id}
+                tooltipMessage={`Copiar ID completo: ${id}`}
+              />
+            </Badge>
+          </div>
         );
       },
       size: 120,

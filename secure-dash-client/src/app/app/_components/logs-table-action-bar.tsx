@@ -4,7 +4,6 @@ import type { Table } from '@tanstack/react-table';
 import { Download } from 'lucide-react';
 import * as React from 'react';
 
-import { LogDetailsSheet } from '@/app/app/_components/log-details-sheet';
 import {
   DataTableActionBar,
   DataTableActionBarAction,
@@ -58,9 +57,6 @@ export function LogsTableActionBar({ table }: LogsTableActionBarProps) {
         >
           <Download />
         </DataTableActionBarAction>
-        <LogDetailsSheet
-          log={table.getSelectedRowModel().rows[0]?.original || null}
-        />
       </div>
     </DataTableActionBar>
   );

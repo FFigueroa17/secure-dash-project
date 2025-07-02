@@ -14,7 +14,7 @@ import BannedIPsTable from '@/app/app/banned-ips/_components/banned-ips-table';
 import { getBannedIPs } from '@/app/app/banned-ips/_lib/queries';
 import { bannedIPsSearchParamsCache } from '@/app/app/banned-ips/_lib/validations';
 import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton';
-import StatsGridSkeleton from '@/components/stats-grid-skeleton';
+import StatsGridSkeleton from '@/components/stats/stats-grid-skeleton';
 import { hasPermission } from '@/lib/dal';
 import { SearchParams } from '@/types';
 

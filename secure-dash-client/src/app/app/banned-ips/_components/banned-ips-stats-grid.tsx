@@ -1,8 +1,8 @@
 import { Shield, ShieldAlert, TrendingUp, Users } from 'lucide-react';
 import React from 'react';
 
-import { StatsCard } from '@/app/app/_components/stats-grid';
 import { getBannedIPsOverview } from '@/app/app/banned-ips/_lib/queries';
+import { StatsCard } from '@/components/stats/stats-cards';
 
 export async function BannedIPsStatsGrid() {
   const overview = await getBannedIPsOverview();

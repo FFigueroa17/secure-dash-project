@@ -133,8 +133,6 @@ export async function getUsersOverview(): Promise<UsersOverview> {
           throw new Error('Failed to fetch users stats');
         }
 
-        console.log('res', res);
-
         const response = await res.json();
         return response;
       } catch (error) {

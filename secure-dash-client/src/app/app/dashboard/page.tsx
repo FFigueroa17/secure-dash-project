@@ -2,8 +2,8 @@
 
 import { Activity, BarChart3, Shield, ShieldAlert } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { useState } from 'react';
 
+import { containerVariants, itemVariants } from '@/app/app/dashboard/_lib/anim';
 import { Card, CardContent } from '@/components/ui/card';
 import { useDashboardWebSocket } from '@/hooks/use-dashboard-websocket';
 import {
@@ -39,16 +39,6 @@ export default function RealtimeLogsPage() {
   const avgDetectionData = useAvgDetectionData();
   const alertsData = useAlertsData();
 
-  // Keep track of previous avg detection time for trend analysis
-  const [previousAvgDetection, setPreviousAvgDetection] = useState<
-    number | undefined
-  >();
-
-  // Update previous value when new data arrives (only when significant change)
-  if (Math.abs((previousAvgDetection || 0) - avgDetectionData.value) > 1) {
-    setPreviousAvgDetection(avgDetectionData.value);
-  }
-
   // Determine loading and data states for each chart
   const isLoadingBanChart =
     connectionStatus.isConnecting && banUnbanData.data.length === 0;
@@ -63,30 +53,6 @@ export default function RealtimeLogsPage() {
     connectionStatus.isConnected && topIPsData.data.length === 0;
   const hasNoActivityData =
     connectionStatus.isConnected && activityTrendData.data.length === 0;
-
-  // Animation variants for smooth transitions
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05,
-        duration: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.3,
-        ease: 'easeOut',
-      },
-    },
-  };
 
   return (
     <div className="w-full h-full flex flex-col overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent py-4 lg:py-6">
@@ -192,7 +158,6 @@ export default function RealtimeLogsPage() {
                   <BanUnbanChart
                     data={banUnbanData.data}
                     avgDetectionTime={avgDetectionData.value}
-                    previousDetectionTime={previousAvgDetection}
                   />
                 )}
               </AnimatePresence>

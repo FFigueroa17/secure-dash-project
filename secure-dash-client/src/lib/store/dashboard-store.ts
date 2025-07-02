@@ -6,15 +6,8 @@ import {
   BanUnbanDataPoint,
   DetectionDataPoint,
   TopIPDetection,
+  WebSocketData,
 } from '@/app/app/dashboard/_lib/types';
-
-export interface WebSocketData {
-  ban_unban_per_minute: BanUnbanDataPoint[];
-  detections_per_minute: DetectionDataPoint[];
-  top_ips: TopIPDetection[];
-  avg_detect_to_ban_sec: number;
-  alerts: Array<{ message: string; severity: string; timestamp: number }>;
-}
 
 export interface DashboardState {
   // WebSocket connection state
@@ -128,25 +121,20 @@ const transformActivityTrendData = (data: DetectionDataPoint[]) => {
 
 // Transform WebSocket alerts to expected Alert format
 const transformAlertsData = (
-  data: Array<{ message: string; severity: string; timestamp: number }>,
+  data: Array<{ ip: string; attempts: number }>,
 ): Alert[] => {
-  if (!data) return [];
+  // Handle empty arrays safely - most of the time alerts will be empty
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    return [];
+  }
 
-  return data.map((alert) => {
-    // Extract IP from message if possible, otherwise use placeholder
-    const ipMatch = alert.message.match(/\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/);
-    const ip = ipMatch ? ipMatch[0] : 'Unknown';
-
-    // Extract ban count from message if possible, otherwise default to 1
-    const banMatch = alert.message.match(/(\d+)\s+ban/i);
-    const bansLastHour =
-      banMatch && banMatch[1] ? parseInt(banMatch[1], 10) : 1;
-
-    return {
-      ip,
-      bansLastHour,
-    };
-  });
+  // Transform the API response to match our Alert interface
+  return data
+    .filter((alert) => alert.ip && typeof alert.attempts === 'number')
+    .map((alert) => ({
+      ip: alert.ip,
+      attempts: alert.attempts,
+    }));
 };
 
 export const useDashboardStore = create<DashboardState>()(
@@ -179,7 +167,7 @@ export const useDashboardStore = create<DashboardState>()(
 
     updateData: (data) => {
       const now = new Date();
-      console.log('🏪 Store updateData called with:', data);
+      console.warn('🏪 Store updateData called with:', data);
 
       set((state) => ({
         rawData: data,
@@ -190,14 +178,14 @@ export const useDashboardStore = create<DashboardState>()(
 
       // Schedule processing with debounce
       const currentQueue = get().updateQueue;
-      console.log('⏱️ Scheduling data processing with queue:', currentQueue);
+      console.warn('⏱️ Scheduling data processing with queue:', currentQueue);
 
       setTimeout(() => {
         if (get().updateQueue === currentQueue) {
-          console.log('✅ Processing queue:', currentQueue);
+          console.warn('✅ Processing queue:', currentQueue);
           get().processUpdateQueue();
         } else {
-          console.log(
+          console.warn(
             '⏭️ Skipping queue processing (newer data available):',
             currentQueue,
           );
@@ -212,7 +200,7 @@ export const useDashboardStore = create<DashboardState>()(
         return;
       }
 
-      console.log('🔄 Processing raw data:', state.rawData);
+      console.warn('🔄 Processing raw data:', state.rawData);
 
       const transformedBanUnban = transformBanUnbanData(
         state.rawData.ban_unban_per_minute,
@@ -223,7 +211,7 @@ export const useDashboardStore = create<DashboardState>()(
       );
       const transformedAlerts = transformAlertsData(state.rawData.alerts || []);
 
-      console.log('📊 Transformed data:', {
+      console.warn('📊 Transformed data:', {
         banUnban: transformedBanUnban,
         topIPs: transformedTopIPs,
         activity: transformedActivity,
@@ -242,7 +230,7 @@ export const useDashboardStore = create<DashboardState>()(
         updateQueue: 0,
       });
 
-      console.log('✅ Store updated successfully');
+      console.warn('✅ Store updated successfully');
     },
 
     clearAlerts: () => {

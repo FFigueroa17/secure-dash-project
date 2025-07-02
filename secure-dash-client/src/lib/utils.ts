@@ -97,3 +97,53 @@ export type PolymorphicComponent<P> = {
     props: PolymorphicComponentPropsWithRef<T, P>,
   ): React.ReactNode;
 };
+
+/**
+ * Copies the provided text to the user's clipboard using the Clipboard API.
+ *
+ * @param text - The text string to copy to clipboard
+ * @example
+ * ```ts
+ * copyToClipboard('192.168.1.1');
+ * ```
+ */
+export const copyToClipboard = (text: string) => {
+  navigator.clipboard.writeText(text);
+};
+
+/**
+ * Opens IP address details in a new browser tab using whatismyipaddress.com.
+ * Provides geographical and network information about the IP address.
+ *
+ * @param ip - The IP address to lookup (IPv4 or IPv6)
+ * @example
+ * ```ts
+ * openIPDetails('192.168.1.1');
+ * ```
+ */
+export const openIPDetails = (ip: string) => {
+  window.open(`https://whatismyipaddress.com/ip/${ip}`, '_blank');
+};
+
+/**
+ * Returns appropriate TailwindCSS classes for styling based on ban count risk level.
+ * Uses a color-coded system to indicate the severity of IP address bans:
+ * - Red (destructive): 10+ bans (high risk)
+ * - Yellow (warning): 3-9 bans (medium risk)
+ * - Blue (primary): 1-2 bans (low risk)
+ *
+ * @param bans - Number of bans for the IP address
+ * @returns TailwindCSS class string for background, text and border colors
+ * @example
+ * ```ts
+ * getRiskColor(15); // Returns 'bg-destructive/10 text-destructive border-destructive/20'
+ * getRiskColor(5);  // Returns 'bg-warning/10 text-warning border-warning/20'
+ * getRiskColor(1);  // Returns 'bg-primary/10 text-primary border-primary/20'
+ * ```
+ */
+export const getRiskColor = (bans: number) => {
+  if (bans >= 10)
+    return 'bg-destructive/10 text-destructive border-destructive/20';
+  if (bans >= 3) return 'bg-warning/10 text-warning border-warning/20';
+  return 'bg-primary/10 text-primary border-primary/20';
+};

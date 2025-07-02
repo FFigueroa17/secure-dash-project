@@ -1,4 +1,4 @@
-import { WebSocketData, TopIP, TrendPoint } from './types';
+import { TopIP, TrendPoint, WebSocketData } from './types';
 
 /**
  * Transform WebSocket ban_unban_per_minute data to format expected by BanUnbanChart
@@ -37,11 +37,11 @@ export function transformActivityTrendData(
 
   const now = new Date();
 
-  return data.map((item, index) => {
+  return data.map((item) => {
     // Create timestamps based on minute offsets from current time
     const [hours, minutes] = item.minute.split(':').map(Number);
     const timestamp = new Date(now);
-    timestamp.setHours(hours, minutes, 0, 0);
+    timestamp.setHours(hours ?? 0, minutes ?? 0, 0, 0);
 
     return {
       t: Math.floor(timestamp.getTime() / 1000),

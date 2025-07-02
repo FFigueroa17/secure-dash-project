@@ -147,6 +147,7 @@ export const buildSearchParams = (input: GetLogsSchema): URLSearchParams => {
   const filters = [
     { key: 'filter_text', value: input.message?.trim() },
     { key: 'level', value: input.level?.trim() },
+    { key: 'event', value: input.eventType?.trim() },
   ];
 
   filters.forEach(({ key, value }) => {

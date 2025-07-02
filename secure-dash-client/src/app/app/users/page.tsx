@@ -13,7 +13,7 @@ import UsersTable from '@/app/app/users/_components/users-table';
 import { getUsers } from '@/app/app/users/_lib/queries';
 import { usersSearchParamsCache } from '@/app/app/users/_lib/validations';
 import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton';
-import StatsGridSkeleton from '@/components/stats-grid-skeleton';
+import StatsGridSkeleton from '@/components/stats/stats-grid-skeleton';
 import { SearchParams } from '@/types';
 
 interface UsersPageProps {

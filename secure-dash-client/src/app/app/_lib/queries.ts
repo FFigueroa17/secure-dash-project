@@ -75,9 +75,10 @@ export async function getFail2BanLogs(
       input.message || '',
       input.level || '',
       input.timestamp?.join(',') || '',
+      input.eventType || '',
     ],
     {
-      revalidate: 15, // Cache for 15 seconds - balance between performance and data freshness
+      revalidate: 5, // Cache for 15 seconds - balance between performance and data freshness
       tags: ['fail2ban-logs'], // Allows for targeted cache invalidation
     },
   )();

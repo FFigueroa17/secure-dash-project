@@ -86,6 +86,27 @@ const LogsTable = ({ promises }: LogsTableProps) => {
               disableFutureDates: true,
             },
             {
+              column: table.getColumn('eventType')!, // Select filter for event type
+              label: 'Tipo de evento',
+              filterType: 'select',
+              placeholder: 'Buscar por tipo de evento',
+              position: 'left',
+              options: [
+                {
+                  label: 'Found',
+                  value: 'Found',
+                },
+                {
+                  label: 'Ban',
+                  value: 'Ban',
+                },
+                {
+                  label: 'Unban',
+                  value: 'Unban',
+                },
+              ],
+            },
+            {
               column: table.getColumn('level')!, // Select filter for log level
               label: 'Nivel',
               filterType: 'select',

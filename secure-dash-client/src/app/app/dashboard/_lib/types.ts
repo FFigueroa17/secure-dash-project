@@ -10,7 +10,7 @@ export interface TrendPoint {
 
 export interface Alert {
   ip: string;
-  bansLastHour: number;
+  attempts: number;
 }
 
 export interface RealtimeStats {
