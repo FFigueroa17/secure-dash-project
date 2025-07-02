@@ -1,136 +1,98 @@
 'use client';
 
-import {
-  AlertTriangle,
-  Calendar,
-  CircleAlert,
-  Eye,
-  FileText,
-  Hash,
-  Info,
-  MessageSquare,
-  Network,
-  Server,
-  Tag,
-} from 'lucide-react';
+import { Copy, Eye, Network, Server, X } from 'lucide-react';
 import * as React from 'react';
 
+import { getLogLevelConfig } from '@/app/app/_lib/utils';
+import { ActionButton } from '@/components/ui/action-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CopyButton } from '@/components/ui/copy-button';
-import { Separator } from '@/components/ui/separator';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
 import { formatDate } from '@/lib/format';
-import { cn } from '@/lib/utils';
+import { cn, copyToClipboard } from '@/lib/utils';
 import { Fail2BanLog } from '@/schemas/log';
 
 interface LogDetailsSheetProps {
   /**
    * The log entry to display details for
    */
-  log: Fail2BanLog | null;
+  log: Fail2BanLog;
 }
 
-// Helper function to get log level styling and icon (same as in columns)
-const getLogLevelConfig = (level: string) => {
-  switch (level) {
-    case 'INFO':
-      return {
-        icon: <FileText className="text-info" size={16} aria-hidden="true" />,
-        badgeClass: 'border-info/20 text-info',
-      };
-    case 'DEBUG':
-      return {
-        icon: <Info className="text-info" size={16} aria-hidden="true" />,
-        badgeClass: 'border-info/20 text-info',
-      };
-    case 'NOTICE':
-      return {
-        icon: <Info className="text-warning" size={16} aria-hidden="true" />,
-        badgeClass: 'border-warning/20 text-warning',
-      };
-    case 'WARNING':
-      return {
-        icon: (
-          <AlertTriangle
-            className="text-amber-500"
-            size={16}
-            aria-hidden="true"
-          />
-        ),
-        badgeClass: 'border-amber-100 text-amber-700',
-      };
-    case 'ERROR':
-      return {
-        icon: (
-          <CircleAlert className="text-error" size={16} aria-hidden="true" />
-        ),
-        badgeClass: 'border-error/20 text-error',
-      };
-    default:
-      return {
-        icon: (
-          <CircleAlert className="text-info" size={16} aria-hidden="true" />
-        ),
-        badgeClass: 'border-info/20 text-info',
-      };
-  }
-};
+// Section component for consistent spacing and icons
+const Section = ({
+  icon,
+  title,
+  children,
+  className,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) => (
+  <div className={cn('space-y-4 w-full', className)}>
+    <div className="flex items-center gap-2">
+      {icon}
+      <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        {title}
+      </h3>
+    </div>
+    {children}
+  </div>
+);
 
-// Helper function to get event type styling
-const getEventTypeConfig = (eventType: string) => {
-  switch (eventType) {
-    case 'Ban':
-      return {
-        badgeClass: 'border-error/20 text-error bg-error/5',
-      };
-    case 'Unban':
-      return {
-        badgeClass:
-          'border-green-500/20 text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950/50',
-      };
-    case 'Found':
-      return {
-        badgeClass: 'border-warning/20 text-warning bg-warning/5',
-      };
-    default:
-      return {
-        badgeClass: 'border-muted text-muted-foreground',
-      };
-  }
-};
+// Info item component for consistent key-value pairs
+const InfoItem = ({
+  label,
+  value,
+  className,
+  copyable = false,
+}: {
+  label: string;
+  value: string | number | React.ReactNode;
+  className?: string;
+  copyable?: boolean;
+}) => (
+  <div className={cn('space-y-2', className)}>
+    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+      {label}
+    </p>
+    <div className="flex items-center gap-2">
+      <span className="text-sm font-medium">{value}</span>
+      {copyable && typeof value === 'string' && (
+        <CopyButton value={value} tooltipMessage={`Copiar: ${value}`} />
+      )}
+    </div>
+  </div>
+);
 
 /**
  * LogDetailsSheet displays detailed information about a selected log entry
- * in a slide-out sheet from the left side.
+ * in a slide-out drawer from the right side.
  */
 export function LogDetailsSheet({ log }: LogDetailsSheetProps) {
-  if (!log) return null;
+  const { icon: levelIcon } = getLogLevelConfig(log.level);
 
-  const { icon: levelIcon, badgeClass: levelBadgeClass } = getLogLevelConfig(
-    log.level,
-  );
-  const { badgeClass: eventTypeBadgeClass } = getEventTypeConfig(log.eventType);
-
-  const formattedDate = formatDate(log.timestamp, {
+  const logDate = new Date(log.timestamp);
+  const formattedLogDate = formatDate(log.timestamp, {
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
+  });
+  const formattedLogTime = logDate.toLocaleTimeString('es-MX', {
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
   });
 
   const fullDateTime = new Date(log.timestamp).toLocaleString('es-MX', {
@@ -139,182 +101,112 @@ export function LogDetailsSheet({ log }: LogDetailsSheetProps) {
   });
 
   return (
-    <Sheet>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <SheetTrigger asChild>
-            <Button variant="outline" size={'icon'}>
-              <Eye strokeWidth={1.5} className="size-4 " />
-            </Button>
-          </SheetTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Ver detalles</TooltipContent>
-      </Tooltip>
-      <SheetContent side="right" className="w-full sm:max-w-lg p-6 rounded-xl">
-        <SheetHeader className="px-0">
-          <SheetTitle>Detalles del Log</SheetTitle>
-          <SheetDescription>
-            Información detallada del registro de Fail2Ban seleccionado.
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="flex flex-col gap-6 py-4">
-          {/* Timestamp Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Calendar className="size-4 text-muted-foreground" />
-              <h3 className="font-medium text-sm">Fecha y Hora</h3>
+    <Drawer direction="right">
+      <DrawerTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Eye className="h-3.5 w-3.5" />
+          <span className="sr-only">Ver detalles del log</span>
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent>
+        {/* Header */}
+        <DrawerHeader className="px-5 pt-6 pb-0">
+          <DrawerTitle className="text-xl font-bold text-left flex items-center gap-2">
+            <div className="flex items-center justify-center size-10 rounded-sm bg-primary/10">
+              <Eye className="h-5 w-5 text-primary" />
             </div>
-            <div className="pl-6 space-y-2">
-              <p className="text-sm font-medium">{formattedDate}</p>
-              <p className="text-xs text-muted-foreground">{fullDateTime}</p>
-            </div>
-          </div>
+            Ver detalles del log
+          </DrawerTitle>
+          <DrawerDescription className="text-base text-muted-foreground text-left">
+            Información detallada del registro de Fail2Ban seleccionado
+          </DrawerDescription>
+        </DrawerHeader>
 
-          <Separator />
+        {/* Content */}
+        <div className="flex flex-col items-start justify-start gap-10 p-5 pt-8 h-full">
+          {/* Service and Timestamp Information */}
+          <Section
+            icon={<Server className="h-4 w-4 text-muted-foreground" />}
+            title="Información del Servicio"
+          >
+            <div className="grid grid-cols-2 gap-x-0 gap-4 w-full">
+              <InfoItem label="PID" value={log.pid || 'N/A'} />
+              <InfoItem label="Servicio" value={log.service} />
+              <InfoItem
+                label="Fecha"
+                value={
+                  <div>
+                    <div className="font-medium">{formattedLogDate}</div>
+                    <div className="text-sm text-foreground">
+                      {formattedLogTime}
+                    </div>
+                  </div>
+                }
+              />
+              <InfoItem label="Timestamp Completo" value={fullDateTime} />
 
-          {/* Service and PID Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Server className="size-4 text-muted-foreground" />
-              <h3 className="font-medium text-sm">Servicio y Proceso</h3>
-            </div>
-            <div className="pl-6 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Servicio:</span>
-                <Badge variant="secondary" className="capitalize">
-                  {log.service}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">PID:</span>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="font-mono">
-                    {log.pid || 'N/A'}
-                  </Badge>
-                  {log.pid && (
-                    <CopyButton
-                      value={log.pid.toString()}
-                      tooltipMessage={`Copiar PID: ${log.pid}`}
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+              <InfoItem label="Tipo de evento" value={log.eventType} />
 
-          <Separator />
-
-          {/* Level and Event Type Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Tag className="size-4 text-muted-foreground" />
-              <h3 className="font-medium text-sm">Clasificación</h3>
-            </div>
-            <div className="pl-6 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Nivel:</span>
-                <Badge
-                  variant="outline"
-                  className={cn('gap-1.5 py-1 px-2', levelBadgeClass)}
-                >
-                  {levelIcon}
-                  {log.level}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Tipo de Evento:
-                </span>
-                <Badge
-                  variant="outline"
-                  className={cn('py-1 px-2', eventTypeBadgeClass)}
-                >
-                  {log.eventType}
-                </Badge>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* IP Address Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Network className="size-4 text-muted-foreground" />
-              <h3 className="font-medium text-sm">Dirección IP</h3>
-            </div>
-            <div className="pl-6">
-              {log.ip ? (
-                <div className="flex items-center gap-2">
+              <InfoItem
+                label="Nivel"
+                value={
                   <Badge
                     variant="outline"
-                    className="font-mono text-sm whitespace-nowrap"
+                    className={cn('gap-2 py-0.5 px-2 text-xs font-medium')}
                   >
-                    {log.ip}
+                    {levelIcon}
+                    {log.level}
                   </Badge>
-                  <CopyButton
-                    value={log.ip}
-                    tooltipMessage={`Copiar IP: ${log.ip}`}
+                }
+              />
+            </div>
+          </Section>
+
+          {/* IP Address Section */}
+          <Section
+            icon={<Network className="h-4 w-4 text-muted-foreground" />}
+            title="Dirección IP"
+          >
+            <div className="space-y-4">
+              {log.ip ? (
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-sm font-medium">
+                    {log.ip}
+                  </span>
+                  <ActionButton
+                    icon={Copy}
+                    onAction={() => copyToClipboard(log.ip || 'N/A')}
+                    tooltipMessage="Copiar IP"
+                    iconSize={12}
                   />
                 </div>
               ) : (
-                <Badge
-                  variant="outline"
-                  className="font-mono text-xs opacity-75"
-                >
-                  Sin detalles de IP
-                </Badge>
+                <InfoItem label="Dirección IP" value="Sin detalles de IP" />
               )}
-            </div>
-          </div>
 
-          <Separator />
-
-          {/* Message Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="size-4 text-muted-foreground" />
-              <h3 className="font-medium text-sm">Mensaje</h3>
-            </div>
-            <div className="pl-6">
-              <div className="relative">
-                <p className="text-sm text-muted-foreground leading-relaxed break-words">
+              <div className="space-y-4">
+                <pre className="text-sm font-mono whitespace-pre-wrap break-words leading-relaxed text-muted-foreground bg-muted/30 rounded-lg p-4 max-h-64 overflow-y-auto border flex justify-between">
                   {log.message}
-                </p>
-                <div className="absolute top-0 right-0">
                   <CopyButton
                     value={log.message}
                     tooltipMessage="Copiar mensaje completo"
                   />
-                </div>
+                </pre>
               </div>
             </div>
-          </div>
+          </Section>
 
-          <Separator />
-
-          {/* Raw Data Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Hash className="size-4 text-muted-foreground" />
-              <h3 className="font-medium text-sm">Datos Técnicos</h3>
-            </div>
-            <div className="pl-6 space-y-2">
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p>
-                  <span className="font-medium">Timestamp ISO:</span>{' '}
-                  {log.timestamp}
-                </p>
-                <p>
-                  <span className="font-medium">Timestamp Unix:</span>{' '}
-                  {Math.floor(new Date(log.timestamp).getTime() / 1000)}
-                </p>
-              </div>
-            </div>
-          </div>
+          {/* Footer */}
+          <DrawerFooter className="flex flex-row gap-3 p-0 mt-auto w-full">
+            <DrawerClose asChild>
+              <Button variant="secondary" className="w-full">
+                <X className="h-3.5 w-3.5" />
+                Cerrar
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DrawerContent>
+    </Drawer>
   );
 }

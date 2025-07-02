@@ -67,6 +67,49 @@ export function getAttackFrequencyConfig(frequency: string) {
 }
 
 /**
+ * Returns the configuration for failed attempts badge including styling and label.
+ */
+export function getFailedAttemptsConfig(failedAttempts: number) {
+  // Define thresholds for different severity levels
+  if (failedAttempts >= 20) {
+    return {
+      badgeClass:
+        'border-destructive/20 bg-destructive/10 text-destructive font-medium',
+      label: 'Alta',
+      severity: 'high' as const,
+    };
+  } else if (failedAttempts >= 10) {
+    return {
+      badgeClass: 'border-warning/20 bg-warning/10 text-warning',
+      label: 'Media',
+      severity: 'medium' as const,
+    };
+  } else if (failedAttempts >= 5) {
+    return {
+      badgeClass: 'border-orange-400/20 bg-orange-400/10 text-orange-400',
+      label: 'Baja',
+      severity: 'low' as const,
+    };
+  } else {
+    return {
+      badgeClass: 'border-muted/20 bg-muted/10 text-muted-foreground',
+      label: 'Mínima',
+      severity: 'minimal' as const,
+    };
+  }
+}
+
+/**
+ * Formats the failed attempts count with proper pluralization.
+ */
+export function formatFailedAttempts(count: number): string {
+  if (count === 1) {
+    return `${count} intento`;
+  }
+  return `${count} intentos`;
+}
+
+/**
  * Formats the ban duration to a more readable format.
  */
 export function formatBanDuration(duration: string): string {

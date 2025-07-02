@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useWebSocket } from './use-websocket';
+
 import { WebSocketData } from '@/app/app/dashboard/_lib/types';
+
+import { useWebSocket } from './use-websocket';
 
 interface UseDebouncedWebSocketOptions {
   url: string;

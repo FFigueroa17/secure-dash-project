@@ -8,8 +8,9 @@ import { toast } from 'sonner';
 import { BannedIPDetailsSheet } from '@/app/app/banned-ips/_components/banned-ip-details-sheet';
 import { unbanIp } from '@/app/app/banned-ips/_lib/actions';
 import {
+  formatFailedAttempts,
   formatThreatScore,
-  getAttackFrequencyConfig,
+  getFailedAttemptsConfig,
   getThreatLevelConfig,
 } from '@/app/app/banned-ips/_lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -88,7 +89,7 @@ export function getBannedIPsTableColumns(
           </div>
         );
       },
-      size: 140,
+      minSize: 120,
     },
     {
       id: 'ban_time',
@@ -119,7 +120,7 @@ export function getBannedIPsTableColumns(
           </Tooltip>
         );
       },
-      size: 180,
+      minSize: 180,
     },
     {
       header: 'Jail',
@@ -129,7 +130,7 @@ export function getBannedIPsTableColumns(
           {row.getValue('jail')}
         </Badge>
       ),
-      size: 60,
+      minSize: 60,
     },
     {
       header: 'Duración',
@@ -142,7 +143,7 @@ export function getBannedIPsTableColumns(
           </Badge>
         );
       },
-      size: 100,
+      minSize: 100,
     },
     {
       header: 'Nivel de amenaza',
@@ -186,27 +187,42 @@ export function getBannedIPsTableColumns(
           </div>
         );
       },
-      size: 140,
+      minSize: 140,
     },
     {
       header: 'Frecuencia',
       accessorKey: 'failed_attempts',
       cell: ({ row }) => {
         const failedAttempts = row.original.failed_attempts;
-        const { badgeClass, label } = getAttackFrequencyConfig(
-          failedAttempts.toString(),
-        );
+        const { badgeClass, label } = getFailedAttemptsConfig(failedAttempts);
 
         return (
-          <Badge
-            variant="outline"
-            className={cn('uppercase gap-1 py-0.5 px-2 text-sm', badgeClass)}
-          >
-            {label}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipProvider>
+                <TooltipTrigger asChild>
+                  <Badge
+                    variant="outline"
+                    className={cn('gap-1 py-0.5 px-2 text-xs', badgeClass)}
+                  >
+                    <span className="font-mono font-medium">
+                      {failedAttempts}
+                    </span>
+                    <span className="text-xs">{label}</span>
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{formatFailedAttempts(failedAttempts)} fallidos</p>
+                  <p className="text-xs text-foreground">
+                    Nivel de frecuencia: {label}
+                  </p>
+                </TooltipContent>
+              </TooltipProvider>
+            </Tooltip>
+          </div>
         );
       },
-      size: 140,
+      minSize: 160,
     },
     {
       header: 'Reincidente',

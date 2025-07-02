@@ -168,3 +168,26 @@ export const buildSearchParams = (input: GetLogsSchema): URLSearchParams => {
 
   return searchParams;
 };
+
+// Helper function to get event type styling
+export const getEventTypeConfig = (eventType: string) => {
+  switch (eventType) {
+    case 'Ban':
+      return {
+        badgeClass: 'border-error/20 text-error bg-error/5',
+      };
+    case 'Unban':
+      return {
+        badgeClass:
+          'border-green-500/20 text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950/50',
+      };
+    case 'Found':
+      return {
+        badgeClass: 'border-warning/20 text-warning bg-warning/5',
+      };
+    default:
+      return {
+        badgeClass: 'border-muted text-muted-foreground',
+      };
+  }
+};

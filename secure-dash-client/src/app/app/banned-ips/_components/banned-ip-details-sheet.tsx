@@ -1,6 +1,15 @@
 'use client';
 
-import { Calendar, Clock, Eye, MapPin, Shield } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  Copy,
+  ExternalLink,
+  Eye,
+  MapPin,
+  Shield,
+  X,
+} from 'lucide-react';
 import React from 'react';
 
 import {
@@ -8,14 +17,16 @@ import {
   getAttackFrequencyConfig,
   getThreatLevelConfig,
 } from '@/app/app/banned-ips/_lib/utils';
+import { ActionButton } from '@/components/ui/action-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { CopyButton } from '@/components/ui/copy-button';
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerDescription,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -23,7 +34,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { formatDate } from '@/lib/format';
-import { cn } from '@/lib/utils';
+import { cn, copyToClipboard, openIPDetails } from '@/lib/utils';
 import { BannedIP } from '@/schemas/log';
 
 interface BannedIPDetailsSheetProps {
@@ -42,10 +53,10 @@ const Section = ({
   children: React.ReactNode;
   className?: string;
 }) => (
-  <div className={cn('space-y-4', className)}>
+  <div className={cn('space-y-4 w-full', className)}>
     <div className="flex items-center gap-2">
       {icon}
-      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+      <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
         {title}
       </h3>
     </div>
@@ -79,34 +90,34 @@ const InfoItem = ({
 );
 
 // Stats card component for metric display
-const StatCard = ({
-  value,
-  label,
-  variant = 'default',
-}: {
-  value: string | number;
-  label: string;
-  variant?: 'default' | 'destructive' | 'success';
-}) => {
-  const valueClasses = {
-    default: 'text-primary',
-    destructive: 'text-destructive',
-    success: 'text-primary',
-  };
+// const StatCard = ({
+//   value,
+//   label,
+//   variant = 'default',
+// }: {
+//   value: string | number;
+//   label: string;
+//   variant?: 'default' | 'destructive' | 'success';
+// }) => {
+//   const valueClasses = {
+//     default: 'text-primary',
+//     destructive: 'text-destructive',
+//     success: 'text-primary',
+//   };
 
-  return (
-    <Card className="p-3 text-center">
-      <div
-        className={cn('text-2xl font-mono font-bold', valueClasses[variant])}
-      >
-        {value}
-      </div>
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-        {label}
-      </p>
-    </Card>
-  );
-};
+//   return (
+//     <Card className="p-3 text-center">
+//       <div
+//         className={cn('text-2xl font-mono font-bold', valueClasses[variant])}
+//       >
+//         {value}
+//       </div>
+//       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+//         {label}
+//       </p>
+//     </Card>
+//   );
+// };
 
 export function BannedIPDetailsSheet({ bannedIP }: BannedIPDetailsSheetProps) {
   if (!bannedIP) {
@@ -148,18 +159,21 @@ export function BannedIPDetailsSheet({ bannedIP }: BannedIPDetailsSheetProps) {
     : null;
 
   return (
-    <Drawer>
+    <Drawer direction="right">
       <DrawerTrigger asChild>
         <Button variant="outline" size="icon">
           <Eye className="h-3.5 w-3.5" />
           <span className="sr-only">Ver detalles de IP bloqueada</span>
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="w-full max-w-7xl mx-auto flex flex-col h-[65vh]">
+      <DrawerContent>
         {/* Header */}
-        <DrawerHeader className="px-8 py-3.5">
-          <DrawerTitle className="text-2xl font-bold text-left">
-            IP bloqueada
+        <DrawerHeader className="px-5 pt-6 pb-0">
+          <DrawerTitle className="text-xl font-bold text-left flex items-center gap-2">
+            <div className="flex items-center justify-center size-10 rounded-sm bg-primary/10">
+              <Eye className="h-5 w-5 text-primary" />
+            </div>
+            Ver detalles de IP bloqueada
           </DrawerTitle>
           <DrawerDescription className="text-base text-muted-foreground text-left">
             Información completa sobre la IP bloqueada y su historial de
@@ -168,8 +182,7 @@ export function BannedIPDetailsSheet({ bannedIP }: BannedIPDetailsSheetProps) {
         </DrawerHeader>
 
         {/* Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 grid-rows-4 gap-16 p-8">
-          {/* Left Column */}
+        <div className="flex flex-col items-start justify-start gap-10 p-5 pt-8 h-full">
           {/* IP Information */}
           <Section
             icon={<MapPin className="h-4 w-4 text-muted-foreground" />}
@@ -186,9 +199,18 @@ export function BannedIPDetailsSheet({ bannedIP }: BannedIPDetailsSheetProps) {
                     <span className="font-mono text-xl font-bold">
                       {bannedIP.ip}
                     </span>
-                    <CopyButton
-                      value={bannedIP.ip}
-                      tooltipMessage={`Copiar IP: ${bannedIP.ip}`}
+                    <ActionButton
+                      icon={Copy}
+                      onAction={() => copyToClipboard(bannedIP.ip)}
+                      tooltipMessage="Copiar IP"
+                      iconSize={12}
+                    />
+                    <ActionButton
+                      icon={ExternalLink}
+                      onAction={() => openIPDetails(bannedIP.ip)}
+                      tooltipMessage="Ver Geolocalización"
+                      iconSize={12}
+                      showSuccessAnimation={false}
                     />
                   </div>
                 </div>
@@ -277,11 +299,10 @@ export function BannedIPDetailsSheet({ bannedIP }: BannedIPDetailsSheetProps) {
           </Section>
 
           {/* Reputation & History */}
-          <Section
+          {/* <Section
             icon={<Shield className="h-4 w-4 text-muted-foreground" />}
             title="Reputación e Historial"
           >
-            {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-4 mb-6">
               <StatCard
                 value={bannedIP.reputation.previous_bans_count}
@@ -294,7 +315,7 @@ export function BannedIPDetailsSheet({ bannedIP }: BannedIPDetailsSheetProps) {
                 variant="default"
               />
             </div>
-          </Section>
+          </Section> */}
 
           <Section
             icon={<Calendar className="h-4 w-4 text-muted-foreground" />}
@@ -327,6 +348,16 @@ export function BannedIPDetailsSheet({ bannedIP }: BannedIPDetailsSheetProps) {
               )}
             </div>
           </Section>
+
+          {/* Footer  */}
+          <DrawerFooter className="flex flex-row gap-3 p-0 mt-auto w-full">
+            <DrawerClose asChild>
+              <Button variant="secondary" className="w-full">
+                <X className="h-3.5 w-3.5" />
+                Cerrar
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
         </div>
       </DrawerContent>
     </Drawer>

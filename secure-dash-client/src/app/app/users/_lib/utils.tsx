@@ -1,4 +1,4 @@
-import { Crown, User as UserIcon, Users } from 'lucide-react';
+import { ShieldCheck, User as UserIcon, Users } from 'lucide-react';
 
 /**
  * Returns the configuration for a user role badge including icon and styling.
@@ -7,8 +7,9 @@ export function getRoleConfig(role: string) {
   switch (role.toUpperCase()) {
     case 'ADMIN':
       return {
-        icon: <Crown className="size-3" />,
-        badgeClass: 'border-destructive/20 bg-destructive/10 text-destructive',
+        icon: <ShieldCheck className="size-3" />,
+        badgeClass:
+          'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400',
         label: 'Admin',
       };
     case 'USER':
@@ -20,7 +21,8 @@ export function getRoleConfig(role: string) {
     default:
       return {
         icon: <Users className="size-3" />,
-        badgeClass: 'border-muted/20 bg-muted/10 text-muted-foreground',
+        badgeClass:
+          'border-muted-foreground/20 bg-muted/10 text-muted-foreground',
         label: 'Desconocido',
       };
   }
