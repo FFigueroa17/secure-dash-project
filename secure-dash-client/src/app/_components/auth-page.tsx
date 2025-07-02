@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import Image from 'next/image';
 import { parseAsStringEnum, useQueryState } from 'nuqs';
 
+import { HealthCheck } from '@/app/_components/health-check';
 import { HERO_IMAGE_URL } from '@/app/_lib/consts';
 import { testimonials } from '@/app/_lib/consts';
 
@@ -53,7 +54,11 @@ const formVariants = {
   },
 };
 
-export function AuthPage() {
+interface AuthPageProps {
+  isHealthy: boolean;
+}
+
+export function AuthPage({ isHealthy }: AuthPageProps) {
   const [mode, setMode] = useQueryState<'login' | 'register'>(
     'mode',
     parseAsStringEnum<'login' | 'register'>(['login', 'register']).withDefault(
@@ -67,7 +72,7 @@ export function AuthPage() {
   return (
     <section className="min-h-screen flex flex-col lg:flex-row bg-background text-foreground">
       {/* Left column: auth forms */}
-      <section className="flex-1 flex items-center justify-center p-8">
+      <section className="flex-1 flex flex-col items-center justify-center p-8 gap-4 relative">
         <div className="w-full max-w-md">
           <AnimatePresence mode="wait">
             {mode === 'login' ? (
@@ -101,11 +106,13 @@ export function AuthPage() {
             )}
           </AnimatePresence>
         </div>
+
+        <HealthCheck isHealthy={isHealthy} />
       </section>
 
       {/* Right column: hero image + testimonials */}
       <motion.section
-        className="hidden lg:block flex-1 relative p-4"
+        className="hidden lg:block flex-[1.6] relative p-4"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: 'easeOut' }}
