@@ -190,11 +190,11 @@ export function getBannedIPsTableColumns(
     },
     {
       header: 'Frecuencia',
-      accessorKey: 'reputation',
+      accessorKey: 'failed_attempts',
       cell: ({ row }) => {
-        const reputation = row.original.reputation;
+        const failedAttempts = row.original.failed_attempts;
         const { badgeClass, label } = getAttackFrequencyConfig(
-          reputation.attack_frequency,
+          failedAttempts.toString(),
         );
 
         return (

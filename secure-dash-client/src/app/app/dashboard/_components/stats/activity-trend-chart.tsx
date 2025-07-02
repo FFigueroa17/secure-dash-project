@@ -1,18 +1,14 @@
 'use client';
 
-import { TrendingUp } from 'lucide-react';
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import { Activity } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useMemo } from 'react';
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
-import { TrendPoint } from '@/app/dashboard/_lib/types';
+import { TrendPoint } from '@/app/app/dashboard/_lib/types';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -23,115 +19,122 @@ interface ActivityTrendChartProps {
 }
 
 export function ActivityTrendChart({ data }: ActivityTrendChartProps) {
-  const chartData = data.map((item) => ({
-    time: new Date(item.t * 1000).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-    events: item.events,
-  }));
+  const chartData = useMemo(() => {
+    return data.map((item) => ({
+      time: new Date(item.t * 1000).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      events: item.events,
+    }));
+  }, [data]);
+
+  const totalEvents = useMemo(() => {
+    return chartData.reduce((sum, item) => sum + item.events, 0);
+  }, [chartData]);
 
   const chartConfig = {
     events: {
-      label: 'Events',
-      color: 'var(--color-primary)',
+      label: 'Eventos',
+      color: 'hsl(var(--chart-3))',
     },
-  } satisfies ChartConfig;
+  };
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              Activity Trend
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
+      <Card className="shadow-sm">
+        <CardHeader className="space-y-0">
+          <div className="flex flex-row justify-start items-center gap-2">
+            <motion.div
+              className="p-1.5 rounded-md bg-primary/10"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            >
+              <Activity className="h-4 w-4 text-primary" />
+            </motion.div>
+            <CardTitle className="text-base font-medium">
+              Actividad de eventos ·
             </CardTitle>
-            <CardDescription>Event frequency over time.</CardDescription>
+            <Badge variant="outline" className="text-xs px-2 py-1">
+              <span className="font-bold text-primary">{totalEvents}</span>{' '}
+              eventos detectados
+            </Badge>
           </div>
-          <div className="w-fit rounded-2xl bg-muted/20 border border-border/30 flex flex-row items-center justify-center gap-4 p-3">
-            <div className="flex items-center justify-center text-xs font-medium text-primary">
-              Live Data
-            </div>
-            <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]" />
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig}>
-          <LineChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              top: 24,
-              left: 0,
-              right: 24,
-            }}
+        </CardHeader>
+
+        <CardContent className="space-y-6 pl-1">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
           >
-            <defs>
-              <linearGradient id="banRateGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="0%"
-                  stopColor="var(--primary)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="100%"
-                  stopColor="var(--primary)"
-                  stopOpacity={0.4}
-                />
-              </linearGradient>
-              <linearGradient
-                id="unbanRateGradient"
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="0%"
-                  stopColor="var(--chart-3)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="100%"
-                  stopColor="var(--chart-3)"
-                  stopOpacity={0.4}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => value.toString()}
-            />
-            <XAxis
-              dataKey="time"
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => value.slice(0, 5)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={
-                <ChartTooltipContent
-                  indicator="line"
-                  className="bg-primary text-foreground"
-                  labelClassName="text-white!"
-                />
-              }
-            />
-            <Line
-              dataKey="events"
-              type="natural"
-              stroke="url(#banRateGradient)"
-              strokeWidth={3}
-              dot
-            />
-          </LineChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+            <ChartContainer
+              config={chartConfig}
+              className="min-h-[290px] lg:max-h-[290px] w-full"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={chartData}
+                  margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                >
+                  <defs>
+                    <linearGradient
+                      id="activityGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="var(--primary)"
+                        stopOpacity={0.6}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="var(--primary)"
+                        stopOpacity={0.02}
+                      />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="time"
+                    axisLine={true}
+                    tickLine={false}
+                    tick={{
+                      fontSize: 11,
+                      fill: 'var(--muted-foreground)',
+                    }}
+                  />
+                  <YAxis
+                    axisLine={true}
+                    tickLine={false}
+                    tick={{
+                      fontSize: 11,
+                      fill: 'var(--muted-foreground)',
+                    }}
+                  />
+                  <ChartTooltip
+                    content={<ChartTooltipContent hideIndicator />}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="events"
+                    stroke="url(#activityGradient)"
+                    strokeWidth={2.5}
+                    fill="url(#activityGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </motion.div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }

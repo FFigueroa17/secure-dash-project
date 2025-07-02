@@ -22,3 +22,41 @@ export interface RealtimeStats {
   trend: TrendPoint[];
   alerts: Alert[];
 }
+
+export interface BanUnbanDataPoint {
+  minute: string;
+  ban: number;
+  unban: number;
+}
+
+export interface DetectionDataPoint {
+  minute: string;
+  count: number;
+}
+
+export interface TopIPDetection {
+  ip: string;
+  detections: number;
+}
+
+export interface WebSocketData {
+  ban_unban_per_minute: BanUnbanDataPoint[];
+  detections_per_minute: DetectionDataPoint[];
+  top_ips: TopIPDetection[];
+  avg_detect_to_ban_sec: number;
+  alerts: Alert[];
+}
+
+export type ConnectionStatus =
+  | 'connecting'
+  | 'connected'
+  | 'disconnected'
+  | 'error'
+  | 'reconnecting';
+
+export interface WebSocketState {
+  data: WebSocketData | null;
+  status: ConnectionStatus;
+  error: string | null;
+  lastUpdate: Date | null;
+}

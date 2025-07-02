@@ -1,115 +1,137 @@
 'use client';
 
-import { Shield, ShieldAlert } from 'lucide-react';
+import { Copy, ExternalLink, Shield } from 'lucide-react';
+import { motion } from 'motion/react';
 
-import { TopIP } from '@/app/dashboard/_lib/types';
+import { TopIP } from '@/app/app/dashboard/_lib/types';
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface TopIPsTableProps {
   data: TopIP[];
 }
 
 export function TopIPsTable({ data }: TopIPsTableProps) {
-  // Sort data by bans in descending order
   const sortedData = [...data].sort((a, b) => b.bans - a.bans).slice(0, 5);
 
+  const getRiskColor = (bans: number) => {
+    if (bans >= 10)
+      return 'bg-destructive/10 text-destructive border-destructive/20';
+    if (bans >= 3) return 'bg-warning/10 text-warning border-warning/20';
+    return 'bg-primary/10 text-primary border-primary/20';
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const openIPDetails = (ip: string) => {
+    window.open(`https://whatismyipaddress.com/ip/${ip}`, '_blank');
+  };
+
   return (
-    <Card className="transition-all duration-300 hover:shadow-md">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
+      <Card className="shadow-sm h-[430px] overflow-hidden">
+        <CardHeader className="space-y-0">
+          <div className="flex items-center gap-2">
+            <motion.div
+              className="p-1.5 rounded-md bg-primary/10"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            >
               <Shield className="h-4 w-4 text-primary" />
-              Top 5 Blocked IPs
+            </motion.div>
+            <CardTitle className="text-base font-medium">
+              Top IPs bloqueadas
             </CardTitle>
-            <CardDescription>IP addresses with the most bans</CardDescription>
           </div>
-          <Badge
-            variant="outline"
-            className="bg-destructive/10 text-destructive border-destructive/20 py-1"
-          >
-            <ShieldAlert className="mr-1.5 h-3.5 w-3.5" />
-            High Risk
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>IP Address</TableHead>
-              <TableHead className="text-right">Bans</TableHead>
-              <TableHead className="text-right">Risk Level</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedData.map((ipData) => {
-              // Determine risk level based on bans
-              const riskLevel =
-                ipData.bans > 10 ? 'High' : ipData.bans > 5 ? 'Medium' : 'Low';
+        </CardHeader>
 
-              // Risk level colors based on design system
-              const getRiskColor = (level: string) => {
-                switch (level) {
-                  case 'High':
-                    return 'var(--destructive)';
-                  case 'Medium':
-                    return 'var(--chart-4)';
-                  case 'Low':
-                    return 'var(--primary)';
-                  default:
-                    return 'var(--primary)';
-                }
-              };
-
-              const riskColor = getRiskColor(riskLevel);
-
-              return (
-                <TableRow
-                  key={ipData.ip}
-                  className="group transition-colors hover:bg-muted/30"
+        <CardContent className="space-y-2">
+          {sortedData.length === 0 ? (
+            <motion.div
+              className="text-center py-12 text-sm text-muted-foreground"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+            >
+              <Shield className="h-8 w-8 mx-auto mb-3 opacity-50" />
+              <p>No hay IPs bloqueadas</p>
+            </motion.div>
+          ) : (
+            <motion.div
+              className="space-y-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+            >
+              {sortedData.map((item, index) => (
+                <motion.div
+                  key={item.ip}
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-all duration-200 border border-transparent hover:border-border/50 hover:shadow-sm"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{
+                    delay: 0.3 + index * 0.1,
+                    duration: 0.3,
+                    ease: 'easeOut',
+                  }}
                 >
-                  <TableCell className="font-mono group-hover:text-primary transition-colors">
-                    {ipData.ip}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className="inline-flex items-center justify-center min-w-8 py-0.5 px-2 rounded-full bg-muted font-medium text-sm transition-transform hover:scale-105">
-                      {ipData.bans}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    <span
-                      className="px-2 py-0.5 rounded-full text-xs inline-block"
-                      style={{
-                        backgroundColor: `color-mix(in srgb, ${riskColor} 15%, transparent)`,
-                        color: riskColor,
-                        border: `1px solid ${riskColor}40`,
-                      }}
+                  <div className="flex items-center gap-4">
+                    <div className="w-7 h-7 rounded-sm bg-muted flex items-center justify-center text-xs font-medium transition-colors hover:bg-muted-foreground/10">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <div className="font-mono text-sm font-medium select-all">
+                        {item.ip}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'text-xs px-3 py-1.5 font-medium',
+                        getRiskColor(item.bans),
+                      )}
                     >
-                      {riskLevel}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+                      {item.bans} bans
+                    </Badge>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(item.ip)}
+                        className="h-8 w-8 p-0 hover:bg-accent hover:scale-105 transition-all duration-200"
+                        title="Copy IP address"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openIPDetails(item.ip)}
+                        className="h-8 w-8 p-0 hover:bg-accent hover:scale-105 transition-all duration-200"
+                        title="View geo information"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }

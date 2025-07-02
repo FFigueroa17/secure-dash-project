@@ -1,157 +1,348 @@
 'use client';
 
-import { Lock, Unlock } from 'lucide-react';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { BarChart3, Clock } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useMemo } from 'react';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
 import { Badge } from '@/components/ui/badge';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
 
 interface BanUnbanChartProps {
   data: Array<{ time: string; banRate: number; unbanRate: number }>;
+  avgDetectionTime?: number;
+  previousDetectionTime?: number;
 }
 
-export function BanUnbanChart({ data }: BanUnbanChartProps) {
+// Custom tooltip content that filters out placeholder values
+interface TooltipPayload {
+  dataKey: string;
+  value: number;
+  name?: string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
+function CustomTooltipContent({ active, payload, label }: CustomTooltipProps) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  // Filter out placeholder data entries
+  const filteredPayload = payload.filter((entry: TooltipPayload) => {
+    const dataKey = entry.dataKey;
+    return !dataKey.includes('Placeholder') && entry.value > 0;
+  });
+
+  if (filteredPayload.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl">
+      <div className="font-medium">{label}</div>
+      <div className="grid gap-1.5">
+        {filteredPayload.map((item: TooltipPayload) => {
+          const isUnban = item.dataKey === 'unbanRate';
+          const color = isUnban ? 'rgb(34 197 94)' : 'rgb(239 68 68)';
+          const label = isUnban ? 'Desbloqueos' : 'Bloqueos';
+
+          return (
+            <div
+              key={item.dataKey}
+              className="flex w-full flex-wrap items-center gap-2"
+            >
+              <div
+                className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                style={{ backgroundColor: color }}
+              />
+              <div className="flex flex-1 justify-between leading-none items-center">
+                <span className="text-muted-foreground">{label}</span>
+                <span className="text-foreground font-mono font-medium tabular-nums">
+                  {item.value.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function BanUnbanChart({
+  data,
+  avgDetectionTime = 0,
+  previousDetectionTime,
+}: BanUnbanChartProps) {
   const chartConfig = {
     banRate: {
-      label: 'Ban Rate',
-      color: 'var(--primary)',
-      icon: Lock,
+      label: 'Bloqueos',
+      color: 'var(--destructive)',
     },
     unbanRate: {
-      label: 'Unban Rate',
-      color: 'var(--chart-3)',
-      icon: Unlock,
+      label: 'Desbloqueos',
+      color: 'var(--primary)',
+    },
+    banRatePlaceholder: {
+      label: 'Placeholder',
+      color: 'rgb(156 163 175)',
+    },
+    unbanRatePlaceholder: {
+      label: 'Placeholder',
+      color: 'rgb(156 163 175)',
     },
   };
 
-  // Calculate total bans and unbans
-  const totalBans = data.reduce((sum, item) => sum + item.banRate, 0);
-  const totalUnbans = data.reduce((sum, item) => sum + item.unbanRate, 0);
+  // Transform data to include placeholder bars for empty values
+  const transformedData = useMemo(() => {
+    return data.map((item) => ({
+      ...item,
+      banRatePlaceholder: item.banRate === 0 && item.unbanRate > 0 ? 0.1 : 0,
+      unbanRatePlaceholder: item.unbanRate === 0 && item.banRate > 0 ? 0.1 : 0,
+    }));
+  }, [data]);
+
+  const stats = useMemo(() => {
+    const totalBans = data.reduce((sum, item) => sum + item.banRate, 0);
+    const totalUnbans = data.reduce((sum, item) => sum + item.unbanRate, 0);
+
+    return { totalBans, totalUnbans };
+  }, [data]);
+
+  const detectionTrend = useMemo(() => {
+    if (
+      previousDetectionTime === undefined ||
+      previousDetectionTime === avgDetectionTime
+    )
+      return null;
+    return previousDetectionTime > avgDetectionTime ? 'improved' : 'worsened';
+  }, [avgDetectionTime, previousDetectionTime]);
+
+  const formatDetectionTime = (seconds: number) => {
+    if (seconds === 0) return 'Instantáneo';
+    if (seconds < 1) return `${(seconds * 1000).toFixed(0)}ms`;
+    return `${seconds.toFixed(1)}s`;
+  };
 
   return (
-    <Card className="transition-all duration-300 hover:shadow-md">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="h-4 w-4 text-primary" />
-              Ban/Unban Rates
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
+      <Card className="shadow-sm h-[430px] overflow-hidden">
+        <CardHeader className="space-y-2">
+          <div className="flex flex-row justify-start items-center gap-2">
+            <motion.div
+              className="p-1.5 rounded-md bg-primary/10"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            >
+              <BarChart3 className="h-4 w-4 text-primary" />
+            </motion.div>
+            <CardTitle className="text-base font-medium">
+              Actividad de bloqueos
             </CardTitle>
-            <CardDescription>Ban and unban rates per minute</CardDescription>
-          </div>
-          <div className="hidden sm:flex items-center space-x-4">
-            <Badge
-              variant="outline"
-              className="bg-primary/10 text-primary border-primary/20 flex gap-2 py-1.5"
+
+            {/* Minimalist KPI Detection Time */}
+            <motion.div
+              className="flex ml-auto items-center justify-between px-1 py-2 rounded-md"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
             >
-              <Lock className="h-3.5 w-3.5" />
-              <div className="flex flex-col">
-                <span className="text-xs text-primary/70">Total Bans</span>
-                <span className="font-medium">{totalBans}</span>
+              <div className="flex items-center gap-2">
+                <Clock className="size-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  Tiempo de detección
+                </span>
+                <Badge
+                  className={`text-emerald-700 border-emerald-200 bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800 hover:bg-emerald-900`}
+                >
+                  {formatDetectionTime(avgDetectionTime)}
+                </Badge>
               </div>
-            </Badge>
-            <Badge
-              variant="outline"
-              className="bg-chart-3/10 text-chart-3 border-chart-3/20 flex gap-2 py-1.5"
-            >
-              <Unlock className="h-3.5 w-3.5" />
-              <div className="flex flex-col">
-                <span className="text-xs text-chart-3/70">Total Unbans</span>
-                <span className="font-medium">{totalUnbans}</span>
-              </div>
-            </Badge>
+              {detectionTrend && (
+                <Badge variant="outline" className="text-xs px-1.5 py-0.5">
+                  {detectionTrend === 'improved' ? '↗ Mejor' : '↘ Peor'}
+                </Badge>
+              )}
+            </motion.div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
-          <BarChart
-            accessibilityLayer
-            data={data}
-            margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+        </CardHeader>
+
+        <CardContent className="space-y-2 pl-1">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
           >
-            <defs>
-              <linearGradient id="banRateGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="0%"
-                  stopColor="var(--primary)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="100%"
-                  stopColor="var(--primary)"
-                  stopOpacity={0.4}
-                />
-              </linearGradient>
-              <linearGradient
-                id="unbanRateGradient"
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="0%"
-                  stopColor="var(--chart-3)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="100%"
-                  stopColor="var(--chart-3)"
-                  stopOpacity={0.4}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              vertical={false}
-              strokeDasharray="3 3"
-              stroke="var(--border)"
-            />
-            <XAxis
-              dataKey="time"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              stroke="var(--muted-foreground)"
-            />
-            <YAxis stroke="var(--muted-foreground)" tickLine={false} />
-            <ChartTooltip
-              content={<ChartTooltipContent />}
-              cursor={{ fill: 'var(--muted)/0.1' }}
-            />
-            <ChartLegend content={<ChartLegendContent />} />
-            <Bar
-              dataKey="banRate"
-              fill="url(#banRateGradient)"
-              radius={[4, 4, 0, 0]}
-              barSize={20}
-              animationDuration={750}
-              animationEasing="ease-out"
-            />
-            <Bar
-              dataKey="unbanRate"
-              fill="url(#unbanRateGradient)"
-              radius={[4, 4, 0, 0]}
-              barSize={20}
-              animationDuration={750}
-              animationEasing="ease-out"
-            />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+            <ChartContainer config={chartConfig} className="h-[270px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={transformedData}
+                  margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                >
+                  <defs>
+                    {/* Ban Rate Gradient */}
+                    <linearGradient
+                      id="banGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="var(--destructive)"
+                        stopOpacity={1}
+                      />
+                      <stop
+                        offset="50%"
+                        stopColor="var(--destructive)"
+                        stopOpacity={0.7}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="var(--destructive)"
+                        stopOpacity={0.3}
+                      />
+                    </linearGradient>
+
+                    {/* Unban Rate Gradient */}
+                    <linearGradient
+                      id="unbanGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="var(--primary)"
+                        stopOpacity={1}
+                      />
+                      <stop
+                        offset="50%"
+                        stopColor="var(--primary)"
+                        stopOpacity={0.7}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="var(--primary)"
+                        stopOpacity={0.3}
+                      />
+                    </linearGradient>
+
+                    {/* Gray Placeholder Gradient */}
+                    <linearGradient
+                      id="placeholderGradient"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="rgb(156 163 175)"
+                        stopOpacity={0.2}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="rgb(107 114 128)"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                  </defs>
+
+                  <XAxis
+                    dataKey="time"
+                    axisLine={true}
+                    tickLine={false}
+                    tick={{
+                      fontSize: 11,
+                      fill: 'var(--muted-foreground)',
+                    }}
+                    tickFormatter={(value) => {
+                      return value.toLocaleString();
+                    }}
+                  />
+                  <YAxis
+                    axisLine={true}
+                    tickLine={false}
+                    tick={{
+                      fontSize: 11,
+                      fill: 'var(--muted-foreground)',
+                    }}
+                  />
+
+                  {/* Use custom tooltip content */}
+                  <ChartTooltip content={<CustomTooltipContent />} />
+
+                  {/* Placeholder bars for empty ban rates */}
+                  <Bar
+                    dataKey="banRatePlaceholder"
+                    fill="url(#placeholderGradient)"
+                    radius={[3, 3, 0, 0]}
+                    opacity={1}
+                  />
+
+                  {/* Placeholder bars for empty unban rates */}
+                  <Bar
+                    dataKey="unbanRatePlaceholder"
+                    fill="url(#placeholderGradient)"
+                    radius={[3, 3, 0, 0]}
+                    opacity={1}
+                  />
+
+                  {/* Main ban rate bars */}
+                  <Bar
+                    dataKey="banRate"
+                    fill="url(#banGradient)"
+                    radius={[3, 3, 0, 0]}
+                    opacity={1}
+                  />
+
+                  {/* Main unban rate bars */}
+                  <Bar
+                    dataKey="unbanRate"
+                    fill="url(#unbanGradient)"
+                    radius={[3, 3, 0, 0]}
+                    opacity={1}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </motion.div>
+
+          <motion.div
+            className="flex justify-center gap-4 text-sm px-2"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.3 }}
+          >
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-sm bg-gradient-to-b from-destructive to-destructive/70" />
+              <span className="text-muted-foreground">
+                {stats.totalBans} bloqueos
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded-sm bg-gradient-to-b from-primary to-primary/70" />
+              <span className="text-muted-foreground">
+                {stats.totalUnbans} desbloqueos
+              </span>
+            </div>
+          </motion.div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }

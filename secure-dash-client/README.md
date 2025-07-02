@@ -325,3 +325,107 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 Made with ❤️ by the Secure Dash Team (UCA)
 
 </div>
+
+### Real-time WebSocket Dashboard
+
+The dashboard connects to `/ws/fail2ban-logs` endpoint to receive real-time security data:
+
+- **Ban/Unban Chart**: Visualizes ban and unban rates per minute
+- **Detection Trends**: Shows detection counts over time
+- **Top IPs**: Displays IPs with highest detection counts
+- **Average Detection Time**: KPI showing time from detection to ban
+- **Real-time Alerts**: Toast notifications for high-risk IPs
+
+### WebSocket Data Format
+
+Expected data structure from `/ws/fail2ban-logs`:
+
+```json
+{
+  "ban_unban_per_minute": [
+    {
+      "minute": "00:01",
+      "ban": 1,
+      "unban": 0
+    }
+  ],
+  "detections_per_minute": [
+    {
+      "minute": "00:03",
+      "count": 3
+    }
+  ],
+  "top_ips": [
+    {
+      "ip": "192.168.2.1",
+      "detections": 4
+    }
+  ],
+  "avg_detect_to_ban_sec": 0,
+  "alerts": [
+    {
+      "ip": "192.168.1.100",
+      "bansLastHour": 5
+    }
+  ]
+}
+```
+
+### Connection Features
+
+- **Auto-reconnection**: Automatically reconnects on connection loss
+- **Connection status indicator**: Visual feedback of WebSocket state
+- **Error handling**: Graceful degradation with error messages
+- **Loading states**: Skeleton loading for better UX
+- **Duplicate alert prevention**: Prevents duplicate toast notifications
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+### Testing WebSocket Connection
+
+For development/testing, you can create a simple WebSocket server:
+
+```bash
+# Install wscat for testing
+npm install -g wscat
+
+# Test WebSocket connection
+wscat -c ws://localhost:3000/ws/fail2ban-logs
+```
+
+## Environment Setup
+
+Make sure your backend WebSocket server is running and accessible at the configured endpoint.
+
+## Build
+
+```bash
+npm run build
+```
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
