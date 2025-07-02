@@ -12,13 +12,13 @@ export async function BannedIPsStatsGrid() {
       title: 'Duración (min)',
       value: overview.summary.ban_duration.toLocaleString(),
       icon: <Shield />,
-      description: 'IPs actualmente bloqueadas',
+      description: 'Duración promedio de los bloqueos (min)',
     },
     {
       title: 'Duración (s)',
       value: overview.summary.ban_duration_seconds.toLocaleString(),
       icon: <Users />,
-      description: 'Duración promedio de los bloqueos',
+      description: 'Duración promedio de los bloqueos (s)',
     },
     {
       title: 'Jails',

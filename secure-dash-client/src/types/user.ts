@@ -4,11 +4,11 @@
  */
 export type User = {
   /** Unique identifier for the user */
-  id?: string;
+  id: string;
   /** User's username */
   username: string;
   /** User's email address */
   email: string;
-  /** User's role in the system (e.g., 'admin', 'user') */
-  role?: string;
-} | null;
+  /** User's role in the system (e.g., 'ADMIN', 'USER') */
+  roles: string[];
+};

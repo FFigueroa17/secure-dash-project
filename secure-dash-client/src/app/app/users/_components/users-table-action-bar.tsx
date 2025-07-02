@@ -11,19 +11,17 @@ import {
 } from '@/components/data-table/data-table-action-bar';
 import { Separator } from '@/components/ui/separator';
 import { exportTableToCSV } from '@/lib/export';
-import { BannedIP } from '@/schemas/log';
+import { User } from '@/schemas/user';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const actions = ['download'] as const;
 type Action = (typeof actions)[number];
 
-interface BannedIPsTableActionBarProps {
-  table: Table<BannedIP>;
+interface UsersTableActionBarProps {
+  table: Table<User>;
 }
 
-export function BannedIPsTableActionBar({
-  table,
-}: BannedIPsTableActionBarProps) {
+export function UsersTableActionBar({ table }: UsersTableActionBarProps) {
   const rows = table.getFilteredSelectedRowModel().rows;
   const [isPending, startTransition] = React.useTransition();
   const [currentAction, setCurrentAction] = React.useState<Action | null>(null);
@@ -39,7 +37,7 @@ export function BannedIPsTableActionBar({
       exportTableToCSV(table, {
         excludeColumns: ['select', 'actions'],
         onlySelected: true,
-        filename: 'banned-ips.csv',
+        filename: 'users.csv',
       });
     });
   }, [table]);

@@ -151,13 +151,9 @@ export const signin = async (formData: FormData) => {
  * ```
  */
 export const logout = async () => {
-  console.log('[DEBUG] Logout function called');
-
   // Remove the session cookie
-  console.log('[DEBUG] Deleting session');
   await deleteSession();
 
-  console.log('[DEBUG] Session deleted, redirecting to /');
   // Redirect to home page
   redirect('/');
 };

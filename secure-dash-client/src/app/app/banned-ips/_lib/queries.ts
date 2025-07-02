@@ -16,10 +16,10 @@ function buildBannedIPsSearchParams(
 
   // Add pagination parameters
   searchParams.set('page', (input.page - 1).toString());
-  searchParams.set('size', input.size.toString());
+  searchParams.set('size', input.perPage.toString());
 
   // Add time range parameter
-  searchParams.set('hours', input.hours.toString() || '24');
+  searchParams.set('hours', input.ban_time.toString() || '24');
 
   // Add jail parameter
   searchParams.set('jail', input.jail || 'sshd');
@@ -91,8 +91,8 @@ export async function getBannedIPs(
     [
       'banned-ips',
       input.page.toString(),
-      input.size.toString(),
-      input.hours.toString(),
+      input.perPage.toString(),
+      input.ban_time.toString(),
       input.jail,
     ],
     {

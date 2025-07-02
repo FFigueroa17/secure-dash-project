@@ -8,7 +8,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider delayDuration={120}>
-      <Toaster />
+      <Toaster richColors closeButton />
       <NuqsAdapter>{children}</NuqsAdapter>
     </TooltipProvider>
   );

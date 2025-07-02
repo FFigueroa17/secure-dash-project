@@ -1,17 +1,26 @@
 'use client';
 
 import type { ColumnDef } from '@tanstack/react-table';
+import { Loader2, LockOpen } from 'lucide-react';
 import * as React from 'react';
+import { toast } from 'sonner';
 
 import { BannedIPDetailsSheet } from '@/app/app/banned-ips/_components/banned-ip-details-sheet';
+import { unbanIp } from '@/app/app/banned-ips/_lib/actions';
 import {
   formatThreatScore,
   getAttackFrequencyConfig,
   getThreatLevelConfig,
 } from '@/app/app/banned-ips/_lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CopyButton } from '@/components/ui/copy-button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Progress } from '@/components/ui/progress';
 import {
   Tooltip,
@@ -22,6 +31,7 @@ import {
 import { cn } from '@/lib/utils';
 import { BannedIP } from '@/schemas/log';
 import type { DataTableRowAction } from '@/types/data-table';
+import { tryCatch } from '@/types/try-catch';
 
 interface GetBannedIPsTableColumnsProps {
   setRowAction: React.Dispatch<
@@ -78,7 +88,7 @@ export function getBannedIPsTableColumns(
           </div>
         );
       },
-      size: 100,
+      size: 140,
     },
     {
       id: 'ban_time',
@@ -109,7 +119,7 @@ export function getBannedIPsTableColumns(
           </Tooltip>
         );
       },
-      size: 100,
+      size: 180,
     },
     {
       header: 'Jail',
@@ -119,7 +129,7 @@ export function getBannedIPsTableColumns(
           {row.getValue('jail')}
         </Badge>
       ),
-      size: 80,
+      size: 60,
     },
     {
       header: 'Duración',
@@ -132,7 +142,7 @@ export function getBannedIPsTableColumns(
           </Badge>
         );
       },
-      size: 80,
+      size: 100,
     },
     {
       header: 'Nivel de amenaza',
@@ -176,7 +186,7 @@ export function getBannedIPsTableColumns(
           </div>
         );
       },
-      size: 110,
+      size: 140,
     },
     {
       header: 'Frecuencia',
@@ -196,7 +206,7 @@ export function getBannedIPsTableColumns(
           </Badge>
         );
       },
-      size: 110,
+      size: 140,
     },
     {
       header: 'Reincidente',
@@ -212,16 +222,98 @@ export function getBannedIPsTableColumns(
           </Badge>
         );
       },
-      size: 80,
+      size: 110,
     },
     {
       id: 'actions',
       header: 'Acciones',
       cell: ({ row }) => {
-        return <BannedIPDetailsSheet bannedIP={row.original || null} />;
+        return (
+          <div className="flex items-center gap-2">
+            <BannedIPDetailsSheet bannedIP={row.original || null} />
+            <UnbanIPButton ip={row.original.ip} />
+          </div>
+        );
       },
       size: 80,
       enableHiding: false,
+      enableSorting: false,
     },
   ];
 }
+
+const UnbanIPButton = ({ ip }: { ip: string }) => {
+  const [isPending, startTransition] = React.useTransition();
+  const [open, setOpen] = React.useState(false);
+
+  const handleUnbanIp = async () => {
+    startTransition(async () => {
+      toast.promise(tryCatch(unbanIp(ip)), {
+        loading: 'Desbloqueando IP...',
+        success: 'IP desbloqueada correctamente',
+        error: 'Error al desbloquear IP',
+      });
+      setOpen(false);
+    });
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <TooltipProvider>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="icon" disabled={isPending}>
+                {isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <LockOpen className="size-4" />
+                )}
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>Desbloquear IP {ip}</TooltipContent>
+        </TooltipProvider>
+      </Tooltip>
+      <PopoverContent className="w-fit" align="end">
+        <div className="space-y-4 max-w-72">
+          <div className="space-y-2">
+            <h4 className="font-medium text-destructive">Cuidado!</h4>
+            <p className="text-xs text-muted-foreground">
+              Estás a punto de desbloquear la IP <strong>{ip}</strong>. Esta
+              acción eliminará todas las reglas de bloqueo asociadas y permitirá
+              que esta IP acceda nuevamente al sistema.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleUnbanIp}
+              disabled={isPending}
+              variant="destructive"
+              size="sm"
+              className="w-full"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin mr-2" />
+                  Desbloqueando...
+                </>
+              ) : (
+                'Confirmar desbloqueo'
+              )}
+            </Button>
+            <Button
+              onClick={() => setOpen(false)}
+              variant="outline"
+              size="sm"
+              disabled={isPending}
+              className="w-full"
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};

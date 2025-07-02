@@ -67,7 +67,22 @@ const BannedIPsTable = ({ promises }: BannedIPsTableProps) => {
         isPending={isPending}
       >
         {/* DataTableToolbar provides filtering and export actions */}
-        <DataTableToolbar table={table} filters={[]}>
+        <DataTableToolbar
+          table={table}
+          filters={[
+            {
+              column: table.getColumn('ban_time')!,
+              filterType: 'select',
+              label: 'Rango de tiempo',
+              options: [
+                { label: '24h', value: '24' },
+                { label: '2d', value: '48' },
+                { label: '3d', value: '72' },
+                { label: '7d', value: '168' },
+              ],
+            },
+          ]}
+        >
           <>
             {/* Export button: enabled only if at least one row is selected */}
             <Button

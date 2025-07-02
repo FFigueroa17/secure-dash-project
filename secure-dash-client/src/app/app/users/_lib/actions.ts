@@ -4,19 +4,19 @@ import { revalidateTag } from 'next/cache';
 
 import { verifySession } from '@/lib/dal';
 
-const JAIL = 'sshd';
+import type { UpdateUserFormData } from './schemas';
 
 /**
- * Manually bans an IP address using the Fail2ban API.
+ * Updates an existing user using the backend API.
  *
- * This server action provides the ability to manually ban IP addresses through
+ * This server action provides the ability to update users through
  * the backend API. It includes:
  *
  * 1. **Authentication validation**: Ensures the user has a valid session before
- *    allowing the ban operation to proceed
+ *    allowing the update operation to proceed
  *
- * 2. **Direct API integration**: Communicates with the Fail2ban backend service
- *    to add the IP to the banned list
+ * 2. **Direct API integration**: Communicates with the backend service
+ *    to update the user
  *
  * 3. **Error handling**: Properly handles and reports API errors with detailed
  *    error messages from the backend
@@ -24,122 +24,117 @@ const JAIL = 'sshd';
  * 4. **Authorization**: Uses bearer token authentication to ensure secure
  *    communication with the API
  *
- * @param ip - The IP address to ban (IPv4 or IPv6 format)
+ * @param userId - The ID of the user to update
+ * @param userData - The user data to update (partial update allowed)
  * @returns Promise resolving to success object or error object
  *
  * @throws {Error} When the API request fails or returns an error response
  *
  * @example
  * ```typescript
- * const result = await banIp('192.168.1.100');
+ * const result = await updateUser('user123', { email: 'newemail@example.com' });
  * if (result.error) {
- *   console.error('Failed to ban IP:', result.error);
+ *   console.error('Failed to update user:', result.error);
  * } else {
- *   console.log('IP banned successfully');
+ *   console.log('User updated successfully');
  * }
  * ```
  */
-export async function banIp(ip: string) {
+export async function updateUser(userId: string, userData: UpdateUserFormData) {
   // Verify user session and authorization
   const session = await verifySession();
   if (!session) return { error: 'Unauthorized' };
 
-  // Construct the API endpoint URL for banning the specific IP
-  const url = `${process.env.NEXT_PUBLIC_API_URL}/jails/${JAIL}/ban-ip`;
+  // Construct the API endpoint URL for updating the specific user
+  const url = `${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`;
 
-  // Send POST request to ban the IP address
+  // Send PUT request to update the user
   const res = await fetch(url, {
-    method: 'POST',
+    method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${session.token}`,
     },
-    body: JSON.stringify({ ip_address: ip }),
-  });
-
-  // Handle API errors and throw with detailed error message
-  if (!res.ok) {
-    const response = await res.json();
-    throw new Error(`Failed to ban ip: ${response.message}`);
-  }
-
-  // Parse the response even when successful
-  const response = await res.json();
-
-  // Check if the IP is already banned
-  if (response.status === 'info') {
-    return {
-      ok: false,
-      alreadyBanned: true,
-      message: response.message,
-    };
-  }
-
-  revalidateTag('banned-ips');
-  // Return success indicator
-  return { ok: true };
-}
-
-/**
- * Manually unbans an IP address using the Fail2ban API.
- *
- * This server action provides the ability to manually unban IP addresses through
- * the backend API. It includes:
- *
- * 1. **Authentication validation**: Ensures the user has a valid session before
- *    allowing the unban operation to proceed
- *
- * 2. **Direct API integration**: Communicates with the Fail2ban backend service
- *    to remove the IP from the banned list
- *
- * 3. **Error handling**: Properly handles and reports API errors with detailed
- *    error messages from the backend
- *
- * 4. **Authorization**: Uses bearer token authentication to ensure secure
- *    communication with the API
- *
- * @param ip - The IP address to unban (IPv4 or IPv6 format)
- * @returns Promise resolving to success object or error object
- *
- * @throws {Error} When the API request fails or returns an error response
- *
- * @example
- * ```typescript
- * const result = await unbanIp('192.168.1.100');
- * if (result.error) {
- *   console.error('Failed to unban IP:', result.error);
- * } else {
- *   console.log('IP unbanned successfully');
- * }
- * ```
- */
-export async function unbanIp(ip: string) {
-  // Verify user session and authorization
-  const session = await verifySession();
-  if (!session) return { error: 'Unauthorized' };
-
-  // Construct the API endpoint URL for unbanning the specific IP
-  const url = `${process.env.NEXT_PUBLIC_API_URL}/jails/${JAIL}/unban-ip`;
-
-  // Send POST request to unban the IP address
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.token}`,
-    },
-    body: JSON.stringify({ ip_address: ip }),
+    body: JSON.stringify(userData),
   });
 
   // Handle API errors and throw with detailed error message
   if (!res.ok) {
     const response = await res.json();
     throw new Error(
-      `Failed to unban ip: ${response.error} ${response.message}`,
+      `Failed to update user: ${response.message || response.error}`,
     );
   }
 
-  revalidateTag('banned-ips');
+  // Revalidate the users cache
+  revalidateTag('users');
+
+  // Return success indicator
+  return { ok: true };
+}
+
+/**
+ * Deletes a user using the backend API.
+ *
+ * This server action provides the ability to delete users through
+ * the backend API. It includes:
+ *
+ * 1. **Authentication validation**: Ensures the user has a valid session before
+ *    allowing the delete operation to proceed
+ *
+ * 2. **Direct API integration**: Communicates with the backend service
+ *    to delete the user
+ *
+ * 3. **Error handling**: Properly handles and reports API errors with detailed
+ *    error messages from the backend
+ *
+ * 4. **Authorization**: Uses bearer token authentication to ensure secure
+ *    communication with the API
+ *
+ * @param userId - The ID of the user to delete
+ * @returns Promise resolving to success object or error object
+ *
+ * @throws {Error} When the API request fails or returns an error response
+ *
+ * @example
+ * ```typescript
+ * const result = await deleteUser('user123');
+ * if (result.error) {
+ *   console.error('Failed to delete user:', result.error);
+ * } else {
+ *   console.log('User deleted successfully');
+ * }
+ * ```
+ */
+export async function deleteUser(userId: string) {
+  // Verify user session and authorization
+  const session = await verifySession();
+  if (!session) return { error: 'Unauthorized' };
+
+  // Construct the API endpoint URL for deleting the specific user
+  const url = `${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`;
+
+  // Send DELETE request to delete the user
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.token}`,
+    },
+  });
+
+  // Handle API errors and throw with detailed error message
+  if (!res.ok) {
+    const response = await res.json();
+    throw new Error(
+      `Failed to delete user: ${response.message || response.error}`,
+    );
+  }
+
+  // Revalidate the users cache
+  revalidateTag('users');
+  revalidateTag('users-overview');
+
   // Return success indicator
   return { ok: true };
 }

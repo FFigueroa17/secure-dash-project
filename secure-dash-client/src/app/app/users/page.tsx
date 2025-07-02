@@ -1,54 +1,49 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Secure Dash | Lista de IPs Bloqueadas',
+  title: 'Secure Dash | Gestión de Usuarios',
   description:
-    'Revisa las IPs bloqueadas y su información de amenaza. Monitorea reincidentes y gestiona bloqueos de manera efectiva.',
+    'Administra usuarios del sistema. Crea, edita y elimina usuarios, asigna roles y gestiona permisos de manera efectiva.',
 };
 
 import React from 'react';
 
-import { BanIPSheet } from '@/app/app/banned-ips/_components/ban-ip-sheet';
-import { BannedIPsStatsGrid } from '@/app/app/banned-ips/_components/banned-ips-stats-grid';
-import BannedIPsTable from '@/app/app/banned-ips/_components/banned-ips-table';
-import { getBannedIPs } from '@/app/app/banned-ips/_lib/queries';
-import { bannedIPsSearchParamsCache } from '@/app/app/banned-ips/_lib/validations';
+import { UsersStatsGrid } from '@/app/app/users/_components/users-stats-grid';
+import UsersTable from '@/app/app/users/_components/users-table';
+import { getUsers } from '@/app/app/users/_lib/queries';
+import { usersSearchParamsCache } from '@/app/app/users/_lib/validations';
 import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton';
 import StatsGridSkeleton from '@/components/stats-grid-skeleton';
-import { hasPermission } from '@/lib/dal';
 import { SearchParams } from '@/types';
 
-interface BannedIPsPageProps {
+interface UsersPageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export default async function BannedIPsPage(props: BannedIPsPageProps) {
+export default async function UsersPage(props: UsersPageProps) {
   const searchParams = await props.searchParams;
-  const filterParams = bannedIPsSearchParamsCache.parse(searchParams);
+  const filterParams = usersSearchParamsCache.parse(searchParams);
 
-  const bannedIPs = getBannedIPs({
+  const users = getUsers({
     ...filterParams,
   });
-
-  const canCreate = await hasPermission('create');
 
   return (
     <div className="flex flex-1 flex-col gap-4 lg:gap-6 py-4 lg:py-6 md:h-full md:min-h-0">
       {/* Page intro */}
       <div className="flex items-center justify-between gap-4 md:flex-shrink-0">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Lista de IPs</h1>
+          <h1 className="text-2xl font-semibold">Gestión de Usuarios</h1>
           <p className="text-sm text-muted-foreground">
-            Revisa las IPs bloqueadas y su información de amenaza. Monitorea
-            reincidentes y gestiona bloqueos de manera efectiva.
+            Administra usuarios del sistema. Crea, edita y elimina usuarios,
+            asigna roles y gestiona permisos de manera efectiva.
           </p>
         </div>
-        {canCreate && <BanIPSheet />}
       </div>
       {/* Stats */}
       <div className="md:flex-shrink-0">
         <React.Suspense fallback={<StatsGridSkeleton />}>
-          <BannedIPsStatsGrid />
+          <UsersStatsGrid />
         </React.Suspense>
       </div>
       {/* Table */}
@@ -56,24 +51,22 @@ export default async function BannedIPsPage(props: BannedIPsPageProps) {
         <React.Suspense
           fallback={
             <DataTableSkeleton
-              columnCount={9}
-              filterCount={3}
+              columnCount={7}
+              filterCount={2}
               cellWidths={[
                 '10rem',
                 '16rem',
                 '18rem',
                 '8rem',
                 '10rem',
-                '16rem',
-                '10rem',
-                '8rem',
+                '12rem',
                 '8rem',
               ]}
               shrinkZero
             />
           }
         >
-          <BannedIPsTable promises={bannedIPs} />
+          <UsersTable promises={users} />
         </React.Suspense>
       </div>
     </div>

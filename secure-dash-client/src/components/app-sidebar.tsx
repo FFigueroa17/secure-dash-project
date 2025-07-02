@@ -4,17 +4,15 @@ import {
   ChartNetwork,
   LayoutDashboard,
   LogOut,
-  LucideIcon,
   Shield,
   Users,
 } from 'lucide-react';
-import Link, { useLinkStatus } from 'next/link';
-import { usePathname } from 'next/navigation';
 import * as React from 'react';
 
 import { logout } from '@/actions/auth';
 import { AppLogo } from '@/components/app-logo';
 import { SearchForm } from '@/components/search-form';
+import { SidebarNavItem } from '@/components/sidebar/sidebar-item';
 import {
   Sidebar,
   SidebarContent,
@@ -28,12 +26,13 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { cn } from '@/lib/utils';
+import { SessionPayload } from '@/lib/session';
 
 const data = {
   navMain: [
     {
       title: 'Secciones',
+      roles: ['USER', 'ADMIN'],
       items: [
         {
           title: 'Dashboard',
@@ -54,6 +53,7 @@ const data = {
     },
     {
       title: 'Administración',
+      roles: ['ADMIN'],
       items: [
         {
           title: 'Usuarios',
@@ -62,58 +62,13 @@ const data = {
         },
       ],
     },
-    // {
-    //   title: 'Other',
-    //   url: '#',
-    //   items: [
-    //     {
-    //       title: 'Settings',
-    //       url: '#',
-    //       icon: Cog,
-    //     },
-    //     {
-    //       title: 'Help Center',
-    //       url: '#',
-    //       icon: Leaf,
-    //     },
-    //   ],
-    // },
   ],
 };
 
-function SidebarNavItem({
-  item,
-}: {
-  item: { title: string; url: string; icon: LucideIcon };
-}) {
-  const pathname = usePathname();
-  const { pending } = useLinkStatus();
-
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        className="group/menu-button font-medium gap-3 h-9 rounded-md bg-gradient-to-r hover:bg-transparent hover:from-sidebar-accent hover:to-sidebar-accent/40 data-[active=true]:from-primary/20 data-[active=true]:to-primary/5 [&>svg]:size-auto"
-        isActive={pathname === item.url}
-      >
-        <Link href={item.url} prefetch>
-          {item.icon && (
-            <item.icon
-              className="text-muted-foreground/60 group-data-[active=true]/menu-button:text-primary"
-              size={22}
-              aria-hidden="true"
-            />
-          )}
-          <span className={cn(pending && 'animate-pulse opacity-70')}>
-            {item.title}
-          </span>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
-}
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  user,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { user: SessionPayload }) {
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -123,20 +78,24 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         {/* We create a SidebarGroup for each parent. */}
-        {data.navMain.map((item) => (
-          <SidebarGroup key={item.title}>
-            <SidebarGroupLabel className="uppercase text-muted-foreground/60">
-              {item.title}
-            </SidebarGroupLabel>
-            <SidebarGroupContent className="px-2">
-              <SidebarMenu>
-                {item.items.map((item) => (
-                  <SidebarNavItem key={item.title} item={item} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        {data.navMain
+          .filter((group) =>
+            user.roles.some((userRole) => group.roles.includes(userRole)),
+          )
+          .map((item) => (
+            <SidebarGroup key={item.title}>
+              <SidebarGroupLabel className="uppercase text-muted-foreground/60">
+                {item.title}
+              </SidebarGroupLabel>
+              <SidebarGroupContent className="px-2">
+                <SidebarMenu>
+                  {item.items.map((item) => (
+                    <SidebarNavItem key={item.title} item={item} />
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
       </SidebarContent>
       <SidebarFooter className="pb-6">
         <hr className="border-t border-border mx-2 -mt-px" />

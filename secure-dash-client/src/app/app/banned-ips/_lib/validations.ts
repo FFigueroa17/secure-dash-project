@@ -7,10 +7,10 @@ import {
 export const bannedIPsSearchParamsCache = createSearchParamsCache({
   // Pagination
   page: parseAsInteger.withDefault(1),
-  size: parseAsInteger.withDefault(10),
+  perPage: parseAsInteger.withDefault(10),
 
-  // Time range filter - hours backward (1-168 hours)
-  hours: parseAsInteger.withDefault(24),
+  // Ban time filter - hours backward (1-168 hours)
+  ban_time: parseAsInteger.withDefault(24),
 
   // Jail filter - default to 'sshd'
   jail: parseAsString.withDefault('sshd'),
