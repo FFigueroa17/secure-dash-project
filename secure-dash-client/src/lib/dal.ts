@@ -14,6 +14,12 @@ import { redirect } from 'next/navigation';
 import { cache } from 'react';
 
 import { decrypt, SessionPayload } from '@/lib/session';
+import {
+  Permission,
+  PermissionResult,
+  Role,
+  RolePermissions,
+} from '@/types/permissions';
 
 /**
  * Interface defining the structure of a verified session.
@@ -90,3 +96,202 @@ export const getUser = cache(async (): Promise<SessionPayload | null> => {
   // Return the session payload
   return session;
 });
+
+/**
+ * Permission configuration mapping roles to their allowed actions.
+ * This can be extended or moved to a database for dynamic permissions.
+ */
+const ROLE_PERMISSIONS: RolePermissions = {
+  USER: ['view'],
+  ADMIN: ['view', 'create', 'update', 'delete', 'manage'],
+} as const;
+
+/**
+ * Checks if the current authenticated user has a specific permission.
+ * This function extracts roles from the session and verifies permissions.
+ * Returns null if the user is not authenticated.
+ *
+ * @param permission - The permission to check (e.g., 'view', 'create', 'update', 'delete')
+ * @returns Promise resolving to boolean indicating if user has permission, or null if not authenticated
+ *
+ * @example
+ * ```typescript
+ * // In a server component
+ * const canDelete = await hasPermission('delete');
+ * if (canDelete === true) {
+ *   // User can delete
+ * } else if (canDelete === false) {
+ *   // User is authenticated but doesn't have permission
+ * } else {
+ *   // User is not authenticated (canDelete === null)
+ * }
+ * ```
+ */
+export const hasPermission = cache(
+  async (permission: Permission): Promise<PermissionResult> => {
+    // Get the current user session
+    const session = await getUser();
+
+    // Return null if user is not authenticated
+    if (!session || !session.roles) {
+      return null;
+    }
+
+    // Check if any of the user's roles have the required permission
+    return session.roles.some((role) =>
+      ROLE_PERMISSIONS[role as Role]?.includes(permission),
+    );
+  },
+);
+
+/**
+ * Checks if the current authenticated user has any of the specified permissions.
+ * Useful for checking multiple permissions where any one of them grants access.
+ *
+ * @param permissions - Array of permissions to check
+ * @returns Promise resolving to boolean indicating if user has any of the permissions, or null if not authenticated
+ *
+ * @example
+ * ```typescript
+ * const canModify = await hasAnyPermission(['create', 'update', 'delete']);
+ * ```
+ */
+export const hasAnyPermission = cache(
+  async (permissions: Permission[]): Promise<PermissionResult> => {
+    // Get the current user session
+    const session = await getUser();
+
+    // Return null if user is not authenticated
+    if (!session || !session.roles) {
+      return null;
+    }
+
+    // Check if user has any of the specified permissions
+    return permissions.some((permission) =>
+      session.roles.some((role) =>
+        ROLE_PERMISSIONS[role as Role]?.includes(permission),
+      ),
+    );
+  },
+);
+
+/**
+ * Checks if the current authenticated user has all of the specified permissions.
+ * Useful for operations that require multiple permissions.
+ *
+ * @param permissions - Array of permissions that are all required
+ * @returns Promise resolving to boolean indicating if user has all permissions, or null if not authenticated
+ *
+ * @example
+ * ```typescript
+ * const canManageUsers = await hasAllPermissions(['create', 'update', 'delete']);
+ * ```
+ */
+export const hasAllPermissions = cache(
+  async (permissions: Permission[]): Promise<PermissionResult> => {
+    // Get the current user session
+    const session = await getUser();
+
+    // Return null if user is not authenticated
+    if (!session || !session.roles) {
+      return null;
+    }
+
+    // Check if user has all of the specified permissions
+    return permissions.every((permission) =>
+      session.roles.some((role) =>
+        ROLE_PERMISSIONS[role as Role]?.includes(permission),
+      ),
+    );
+  },
+);
+
+/**
+ * Checks if the current authenticated user has a specific role.
+ *
+ * @param role - The role to check for
+ * @returns Promise resolving to boolean indicating if user has the role, or null if not authenticated
+ *
+ * @example
+ * ```typescript
+ * const isAdmin = await hasRole('ADMIN');
+ * ```
+ */
+export const hasRole = cache(async (role: Role): Promise<PermissionResult> => {
+  // Get the current user session
+  const session = await getUser();
+
+  // Return null if user is not authenticated
+  if (!session || !session.roles) {
+    return null;
+  }
+
+  // Check if user has the specified role
+  return session.roles.includes(role);
+});
+
+/**
+ * Gets all permissions for the current authenticated user based on their roles.
+ *
+ * @returns Promise resolving to array of permissions, or null if not authenticated
+ *
+ * @example
+ * ```typescript
+ * const userPermissions = await getUserPermissions();
+ * if (userPermissions) {
+ *   console.log('User can:', userPermissions);
+ * }
+ * ```
+ */
+export const getUserPermissions = cache(
+  async (): Promise<Permission[] | null> => {
+    // Get the current user session
+    const session = await getUser();
+
+    // Return null if user is not authenticated
+    if (!session || !session.roles) {
+      return null;
+    }
+
+    // Collect all unique permissions from user's roles
+    const permissions = new Set<Permission>();
+    session.roles.forEach((role) => {
+      const rolePermissions = ROLE_PERMISSIONS[role as Role] || [];
+      rolePermissions.forEach((permission) => permissions.add(permission));
+    });
+
+    return Array.from(permissions);
+  },
+);
+
+/**
+ * Requires the user to have a specific permission, redirecting to login if not authenticated
+ * or throwing an error if permission is denied.
+ *
+ * @param permission - The required permission
+ * @throws Will redirect to '/' if not authenticated or throw error if permission denied
+ *
+ * @example
+ * ```typescript
+ * // In a server component that requires delete permission
+ * await requirePermission('delete');
+ * // Code here will only run if user has delete permission
+ * ```
+ */
+export const requirePermission = cache(
+  async (permission: Permission): Promise<void> => {
+    const hasAccess = await hasPermission(permission);
+
+    if (hasAccess === null) {
+      // User is not authenticated, redirect to login
+      redirect('/');
+    }
+
+    if (hasAccess === false) {
+      // User is authenticated but doesn't have permission
+      throw new Error(`Access denied: ${permission} permission required`);
+    }
+
+    // Permission granted, continue execution
+  },
+);

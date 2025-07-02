@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ChartNetwork,
   LayoutDashboard,
   LogOut,
   LucideIcon,
@@ -47,6 +48,16 @@ const data = {
         {
           title: 'Fail2Ban Logs',
           url: '/app',
+          icon: ChartNetwork,
+        },
+      ],
+    },
+    {
+      title: 'Administración',
+      items: [
+        {
+          title: 'Usuarios',
+          url: '/app/users',
           icon: Users,
         },
       ],

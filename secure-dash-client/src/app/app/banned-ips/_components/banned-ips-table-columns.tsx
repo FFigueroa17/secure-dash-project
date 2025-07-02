@@ -78,7 +78,7 @@ export function getBannedIPsTableColumns(
           </div>
         );
       },
-      size: 120,
+      size: 100,
     },
     {
       id: 'ban_time',
@@ -109,7 +109,7 @@ export function getBannedIPsTableColumns(
           </Tooltip>
         );
       },
-      size: 130,
+      size: 100,
     },
     {
       header: 'Jail',
@@ -132,7 +132,7 @@ export function getBannedIPsTableColumns(
           </Badge>
         );
       },
-      size: 100,
+      size: 80,
     },
     {
       header: 'Nivel de amenaza',
@@ -147,7 +147,7 @@ export function getBannedIPsTableColumns(
           <div className="flex items-center gap-2">
             <Badge
               variant="outline"
-              className={cn('gap-1 py-0.5 px-2 text-sm', badgeClass)}
+              className={cn('gap-1 py-0.5 px-2 text-xs', badgeClass)}
             >
               {icon}
               {label}
@@ -176,7 +176,7 @@ export function getBannedIPsTableColumns(
           </div>
         );
       },
-      size: 160,
+      size: 110,
     },
     {
       header: 'Frecuencia',
@@ -188,12 +188,15 @@ export function getBannedIPsTableColumns(
         );
 
         return (
-          <Badge variant="outline" className={cn('text-xs', badgeClass)}>
+          <Badge
+            variant="outline"
+            className={cn('uppercase gap-1 py-0.5 px-2 text-sm', badgeClass)}
+          >
             {label}
           </Badge>
         );
       },
-      size: 100,
+      size: 110,
     },
     {
       header: 'Reincidente',

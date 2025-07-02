@@ -8,12 +8,14 @@ export const metadata: Metadata = {
 
 import React from 'react';
 
+import { BanIPSheet } from '@/app/app/banned-ips/_components/ban-ip-sheet';
 import { BannedIPsStatsGrid } from '@/app/app/banned-ips/_components/banned-ips-stats-grid';
 import BannedIPsTable from '@/app/app/banned-ips/_components/banned-ips-table';
 import { getBannedIPs } from '@/app/app/banned-ips/_lib/queries';
 import { bannedIPsSearchParamsCache } from '@/app/app/banned-ips/_lib/validations';
 import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton';
 import StatsGridSkeleton from '@/components/stats-grid-skeleton';
+import { hasPermission } from '@/lib/dal';
 import { SearchParams } from '@/types';
 
 interface BannedIPsPageProps {
@@ -28,6 +30,8 @@ export default async function BannedIPsPage(props: BannedIPsPageProps) {
     ...search,
   });
 
+  const canCreate = await hasPermission('create');
+
   return (
     <div className="flex flex-1 flex-col gap-4 lg:gap-6 py-4 lg:py-6 md:h-full md:min-h-0">
       {/* Page intro */}
@@ -39,6 +43,7 @@ export default async function BannedIPsPage(props: BannedIPsPageProps) {
             reincidentes y gestiona bloqueos de manera efectiva.
           </p>
         </div>
+        {canCreate && <BanIPSheet />}
       </div>
       {/* Stats */}
       <div className="md:flex-shrink-0">

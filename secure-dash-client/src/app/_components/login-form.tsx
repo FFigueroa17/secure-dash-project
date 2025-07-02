@@ -2,8 +2,10 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 import { signin } from '@/actions/auth';
 import { Button } from '@/components/ui/button';
@@ -27,6 +29,7 @@ interface LoginFormProps {
 
 export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -45,11 +48,16 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
 
     const result = await tryCatch(signin(formData));
 
-    if (result.error) {
+    if (result.error || !result.ok) {
       form.setError('root', {
         message:
           'Login failed, please try again. Error message: ' + result.error,
       });
+    }
+
+    if (result.ok) {
+      toast.success('Login successful');
+      router.push('/app');
     }
   };
 

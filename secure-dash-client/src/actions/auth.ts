@@ -136,8 +136,9 @@ export const signin = async (formData: FormData) => {
     throw new Error(result.error.message);
   }
 
-  // Redirect to app after successful authentication
-  redirect('/app');
+  return {
+    ok: true,
+  };
 };
 
 /**

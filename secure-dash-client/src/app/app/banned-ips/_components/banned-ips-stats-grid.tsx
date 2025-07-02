@@ -41,6 +41,7 @@ export async function BannedIPsStatsGrid() {
           key={stat.title}
           title={stat.title}
           value={stat.value}
+          description={stat.description}
           icon={stat.icon}
         />
       ))}

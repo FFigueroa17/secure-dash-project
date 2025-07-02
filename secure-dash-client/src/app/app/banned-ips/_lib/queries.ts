@@ -82,7 +82,6 @@ export async function getBannedIPs(
         }
 
         const response = await res.json();
-        console.log('response', response);
         return response;
       } catch (error) {
         throw error;
@@ -97,7 +96,7 @@ export async function getBannedIPs(
       input.jail,
     ],
     {
-      revalidate: 30, // Cache for 30 seconds - balance between performance and data freshness
+      revalidate: 10, // Cache for 10 seconds - balance between performance and data freshness
       tags: ['banned-ips'], // Allows for targeted cache invalidation
     },
   )();
@@ -159,7 +158,7 @@ export async function getBannedIPsOverview(): Promise<BannedIPsOverview> {
     },
     [], // No cache key dependencies - statistics are global
     {
-      revalidate: 30, // Cache for 30 seconds - statistics change less frequently
+      revalidate: 10, // Cache for 10 seconds
       tags: ['banned-ips-overview'], // Separate tag for independent cache management
     },
   )();

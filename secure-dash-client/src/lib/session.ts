@@ -53,7 +53,7 @@ export const encrypt = async (payload: SessionPayload) => {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('15min')
+    .setExpirationTime('1h')
     .sign(encodedKey);
 };
 
@@ -118,8 +118,8 @@ export const createSession = async (token: string) => {
     throw new Error('User not found when creating session');
   }
 
-  // Set session expiration to 15 minutes from now
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+  // Set session expiration to 1 hour from now
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
   // Encrypt the session payload
   const session = await encrypt({
