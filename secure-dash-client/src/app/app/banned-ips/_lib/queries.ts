@@ -97,7 +97,7 @@ export async function getBannedIPs(
       input.jail,
     ],
     {
-      revalidate: 10, // Cache for 10 seconds - balance between performance and data freshness
+      revalidate: 1, // Cache for 10 seconds - balance between performance and data freshness
       tags: ['banned-ips'], // Allows for targeted cache invalidation
     },
   )();

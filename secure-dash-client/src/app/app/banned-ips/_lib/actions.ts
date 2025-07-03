@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { verifySession } from '@/lib/dal';
@@ -77,6 +77,7 @@ export async function banIp(ip: string) {
   }
 
   revalidateTag('banned-ips');
+  revalidatePath('/app/banned-ips');
   // Return success indicator
   return { ok: true };
 }
