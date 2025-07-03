@@ -6,12 +6,16 @@ import {
   Copy,
   ExternalLink,
   Eye,
+  FileSearch,
+  Loader2,
   MapPin,
   Shield,
   X,
 } from 'lucide-react';
 import React from 'react';
+import { toast } from 'sonner';
 
+import { navigateToIPLogs } from '@/app/app/banned-ips/_lib/actions';
 import {
   formatThreatScore,
   getAttackFrequencyConfig,
@@ -36,6 +40,7 @@ import { Separator } from '@/components/ui/separator';
 import { formatDate } from '@/lib/format';
 import { cn, copyToClipboard, openIPDetails } from '@/lib/utils';
 import { BannedIP } from '@/schemas/log';
+import { tryCatch } from '@/types/try-catch';
 
 interface BannedIPDetailsSheetProps {
   bannedIP: BannedIP | null;
@@ -120,6 +125,8 @@ const InfoItem = ({
 // };
 
 export function BannedIPDetailsSheet({ bannedIP }: BannedIPDetailsSheetProps) {
+  const [isPending, startTransition] = React.useTransition();
+
   if (!bannedIP) {
     return null;
   }
@@ -157,6 +164,16 @@ export function BannedIPDetailsSheet({ bannedIP }: BannedIPDetailsSheetProps) {
         day: 'numeric',
       })
     : null;
+
+  const handleNavigateToLogs = async () => {
+    startTransition(async () => {
+      toast.promise(tryCatch(navigateToIPLogs(bannedIP.ip)), {
+        loading: 'Redirigiendo a logs...',
+        success: 'Redirigiendo a logs con filtro aplicado',
+        error: 'Error al navegar a logs',
+      });
+    });
+  };
 
   return (
     <Drawer direction="right">
@@ -351,8 +368,30 @@ export function BannedIPDetailsSheet({ bannedIP }: BannedIPDetailsSheetProps) {
 
           {/* Footer  */}
           <DrawerFooter className="flex flex-row gap-3 p-0 mt-auto w-full">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={handleNavigateToLogs}
+              disabled={isPending}
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Redirigiendo...
+                </>
+              ) : (
+                <>
+                  <FileSearch className="h-3.5 w-3.5" />
+                  Ver más logs de esta IP
+                </>
+              )}
+            </Button>
             <DrawerClose asChild>
-              <Button variant="secondary" className="w-full">
+              <Button
+                variant="secondary"
+                className="flex-1"
+                disabled={isPending}
+              >
                 <X className="h-3.5 w-3.5" />
                 Cerrar
               </Button>

@@ -1,7 +1,9 @@
 import 'server-only';
 
+import { unstable_cache } from 'next/cache';
+import { redirect } from 'next/navigation';
+
 import { verifySession } from '@/lib/dal';
-import { unstable_cache } from '@/lib/unstable-cache';
 import { APIResponse, BannedIP, BannedIPsOverview } from '@/schemas/log';
 
 import type { GetBannedIPsSchema } from './validations';
@@ -51,16 +53,7 @@ export async function getBannedIPs(
   input: GetBannedIPsSchema,
 ): Promise<APIResponse<BannedIP>> {
   const session = await verifySession();
-  if (!session) {
-    return {
-      totalCount: 0,
-      totalPages: 0,
-      currentPage: 0,
-      hasNextPage: false,
-      hasPreviousPage: false,
-      values: [],
-    };
-  }
+  if (!session) return redirect('/');
 
   return await unstable_cache(
     async () => {
@@ -84,7 +77,15 @@ export async function getBannedIPs(
         const response = await res.json();
         return response;
       } catch (error) {
-        throw error;
+        console.warn('Error fetching banned IPs:', error);
+        return {
+          totalCount: 0,
+          totalPages: 0,
+          currentPage: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+          values: [],
+        };
       }
     },
     // Cache key includes all parameters that affect the query result
@@ -123,16 +124,7 @@ export async function getBannedIPs(
  */
 export async function getBannedIPsOverview(): Promise<BannedIPsOverview> {
   const session = await verifySession();
-  if (!session) {
-    return {
-      summary: {
-        jail_name: 0,
-        total_banned_ips: 0,
-        ban_duration: 0,
-        ban_duration_seconds: 0,
-      },
-    };
-  }
+  if (!session) return redirect('/');
 
   return await unstable_cache(
     async () => {
@@ -152,8 +144,15 @@ export async function getBannedIPsOverview(): Promise<BannedIPsOverview> {
         const response = await res.json();
         return response;
       } catch (error) {
-        console.error('Error fetching banned IPs stats:', error);
-        throw error;
+        console.warn('Error fetching banned IPs stats:', error);
+        return {
+          summary: {
+            jail_name: 0,
+            total_banned_ips: 0,
+            ban_duration: 0,
+            ban_duration_seconds: 0,
+          },
+        };
       }
     },
     [], // No cache key dependencies - statistics are global

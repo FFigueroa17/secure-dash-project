@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { redirect } from 'next/navigation';
+
 import { buildSearchParams } from '@/app/app/_lib/utils';
 import { verifySession } from '@/lib/dal';
 import { unstable_cache } from '@/lib/unstable-cache';
@@ -31,16 +33,7 @@ export async function getFail2BanLogs(
   input: GetLogsSchema,
 ): Promise<APIResponse<Fail2BanLog>> {
   const session = await verifySession();
-  if (!session) {
-    return {
-      totalCount: 0,
-      totalPages: 0,
-      currentPage: 0,
-      hasNextPage: false,
-      hasPreviousPage: false,
-      values: [],
-    };
-  }
+  if (!session) return redirect('/');
 
   return await unstable_cache(
     async () => {
@@ -63,7 +56,15 @@ export async function getFail2BanLogs(
         const response = await res.json();
         return response;
       } catch (error) {
-        throw error;
+        console.warn('Error fetching fail2ban logs:', error);
+        return {
+          totalCount: 0,
+          totalPages: 0,
+          currentPage: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+          values: [],
+        };
       }
     },
     // Cache key includes all parameters that affect the query result
@@ -111,15 +112,7 @@ export async function getFail2BanLogs(
  */
 export async function getFail2BanLogsOverview(): Promise<Fail2BanOverview> {
   const session = await verifySession();
-  if (!session) {
-    return {
-      logs_difference: 0,
-      parse_rate: 0,
-      ban_events: 0,
-      warn_error_logs: 0,
-    };
-  }
-
+  if (!session) return redirect('/');
   return await unstable_cache(
     async () => {
       // Build the URL with the API URL from the environment variables
@@ -139,8 +132,13 @@ export async function getFail2BanLogsOverview(): Promise<Fail2BanOverview> {
         const response = await res.json();
         return response;
       } catch (error) {
-        console.error('Error fetching fail2ban logs:', error);
-        throw error;
+        console.warn('Error fetching fail2ban logs:', error);
+        return {
+          logs_difference: 0,
+          parse_rate: 0,
+          ban_events: 0,
+          warn_error_logs: 0,
+        };
       }
     },
     [], // No cache key dependencies - statistics are global and don't vary by user input

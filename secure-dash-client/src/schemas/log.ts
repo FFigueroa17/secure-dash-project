@@ -32,7 +32,7 @@ export interface APIResponse<TData> {
   hasNextPage: boolean;
   /** Indicates if there is a previous page available. */
   hasPreviousPage: boolean;
-  /** The list of parsed Fail2Ban log entries for the current page. */
+  /** The list of parsed TData entries for the current page. */
   values: TData[];
 }
 

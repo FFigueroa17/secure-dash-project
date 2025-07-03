@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertTriangle, Ban, Loader2, X } from 'lucide-react';
+import { AlertTriangle, Ban, Loader2, Lock, X } from 'lucide-react';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -72,7 +72,7 @@ export const BanIPSheet = () => {
     <Drawer direction="right" open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
         <Button variant="destructive">
-          <Ban className="h-3.5 w-3.5" />
+          <Lock className="h-3.5 w-3.5" />
           <span>Bloquear IP</span>
         </Button>
       </DrawerTrigger>

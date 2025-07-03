@@ -74,7 +74,7 @@ export function AppSidebar({
       <SidebarHeader>
         <AppLogo />
         <hr className="border-t border-border mx-2 -mt-px" />
-        <SearchForm className="mt-3" />
+        <SearchForm />
       </SidebarHeader>
       <SidebarContent>
         {/* We create a SidebarGroup for each parent. */}

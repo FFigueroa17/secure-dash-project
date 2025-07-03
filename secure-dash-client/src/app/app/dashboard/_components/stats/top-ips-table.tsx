@@ -94,13 +94,13 @@ export function TopIPsTable({ data }: TopIPsTableProps) {
                       <ActionButton
                         icon={Copy}
                         onAction={() => copyToClipboard(item.ip)}
-                        tooltipMessage="Copy IP address"
+                        tooltipMessage="Copiar IP"
                         iconSize={12}
                       />
                       <ActionButton
                         icon={ExternalLink}
                         onAction={() => openIPDetails(item.ip)}
-                        tooltipMessage="View geo information"
+                        tooltipMessage="Ver Geolocalización"
                         iconSize={12}
                         showSuccessAnimation={false}
                       />

@@ -47,16 +47,7 @@ export async function getUsers(
   input: GetUsersSchema,
 ): Promise<APIResponse<User>> {
   const session = await verifySession();
-  if (!session) {
-    return {
-      totalCount: 0,
-      totalPages: 0,
-      currentPage: 0,
-      hasNextPage: false,
-      hasPreviousPage: false,
-      values: [],
-    };
-  }
+  if (!session) return redirect('/');
 
   return await unstable_cache(
     async () => {
@@ -80,14 +71,22 @@ export async function getUsers(
         const response = await res.json();
         return {
           values: response.users,
-          totalPages: response.total_pages,
+          totalPages: response.total_pages + 1,
           currentPage: response.current_page,
           hasNextPage: response.has_next_page,
           hasPreviousPage: response.has_previous_page,
           totalCount: response.total_count,
         };
       } catch (error) {
-        throw error;
+        console.warn('Error fetching users:', error);
+        return {
+          values: [],
+          totalPages: 0,
+          currentPage: 0,
+          hasNextPage: false,
+          hasPreviousPage: false,
+          totalCount: 0,
+        };
       }
     },
     // Cache key includes all parameters that affect the query result
@@ -136,8 +135,14 @@ export async function getUsersOverview(): Promise<UsersOverview> {
         const response = await res.json();
         return response;
       } catch (error) {
-        console.error('Error fetching users stats:', error);
-        throw error;
+        console.warn('Error fetching users stats:', error);
+        return {
+          summary: {
+            total_users: 0,
+            total_active_users: 0,
+            total_inactive_users: 0,
+          },
+        };
       }
     },
     [], // No cache key dependencies - statistics are global

@@ -6,12 +6,11 @@ import * as React from 'react';
 import { toast } from 'sonner';
 
 import { BannedIPDetailsSheet } from '@/app/app/banned-ips/_components/banned-ip-details-sheet';
+import { RemainingTimeCell } from '@/app/app/banned-ips/_components/remaining-time-cell';
 import { unbanIp } from '@/app/app/banned-ips/_lib/actions';
 import {
   formatFailedAttempts,
-  formatThreatScore,
   getFailedAttemptsConfig,
-  getThreatLevelConfig,
 } from '@/app/app/banned-ips/_lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Progress } from '@/components/ui/progress';
 import {
   Tooltip,
   TooltipContent,
@@ -146,48 +144,17 @@ export function getBannedIPsTableColumns(
       minSize: 100,
     },
     {
-      header: 'Nivel de amenaza',
+      header: 'Tiempo restante',
       accessorKey: 'threat_level',
       cell: ({ row }) => {
-        const threatLevel = row.original.threat_level;
-        const { icon, badgeClass, label } = getThreatLevelConfig(
-          threatLevel.level,
-        );
-
         return (
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className={cn('gap-1 py-0.5 px-2 text-xs', badgeClass)}
-            >
-              {icon}
-              {label}
-            </Badge>
-            <Tooltip defaultOpen={false}>
-              <TooltipProvider>
-                <TooltipTrigger asChild>
-                  <div className="w-16">
-                    <Progress
-                      value={(threatLevel.score / threatLevel.max_score) * 100}
-                      className="h-1.5"
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    Puntuación:{' '}
-                    {formatThreatScore(
-                      threatLevel.score,
-                      threatLevel.max_score,
-                    )}
-                  </p>
-                </TooltipContent>
-              </TooltipProvider>
-            </Tooltip>
-          </div>
+          <RemainingTimeCell
+            banTime={row.original.ban_time}
+            banDuration={row.original.ban_duration_time}
+          />
         );
       },
-      minSize: 140,
+      minSize: 200,
     },
     {
       header: 'Frecuencia',

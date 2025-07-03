@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidateTag } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 import { verifySession } from '@/lib/dal';
 
@@ -142,4 +143,42 @@ export async function unbanIp(ip: string) {
   revalidateTag('banned-ips');
   // Return success indicator
   return { ok: true };
+}
+
+/**
+ * Server action to navigate to the logs page with IP filtering.
+ *
+ * This server action provides a reliable way to navigate to the main logs page
+ * with a specific IP address filter applied. It includes:
+ *
+ * 1. **Authentication validation**: Ensures the user has a valid session
+ * 2. **Cache revalidation**: Revalidates relevant cache tags to ensure fresh data
+ * 3. **Proper URL encoding**: Ensures the IP address is correctly encoded in the URL
+ * 4. **Server-side redirect**: Uses Next.js server-side redirect for reliable navigation
+ *
+ * @param ip - The IP address to filter by in the logs page
+ * @returns Promise that redirects to the logs page with the IP filter applied
+ *
+ * @example
+ * ```typescript
+ * await navigateToIPLogs('192.168.1.100');
+ * // Redirects to /app?message=192.168.1.100
+ * ```
+ */
+export async function navigateToIPLogs(ip: string) {
+  // Verify user session and authorization
+  const session = await verifySession();
+  if (!session) return { error: 'Unauthorized' };
+
+  // Revalidate cache tags to ensure fresh data on the destination page
+  revalidateTag('fail2ban-logs');
+  revalidateTag('fail2ban-logs-overview');
+  revalidateTag('banned-ips');
+
+  // Construct the URL with proper encoding
+  const params = new URLSearchParams();
+  params.set('message', ip);
+
+  // Redirect to the logs page with the IP filter applied
+  redirect(`/app?${params.toString()}`);
 }
